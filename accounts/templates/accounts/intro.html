@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static plant_ui %}
+{% block title %}사용 안내 · 반려식물 관리 서비스{% endblock %}
+{% block body %}
+<main class="onboard intro">
+  <h1 class="page-title onboard__title">사용 안내</h1>
+
+  <form method="post" action="{% url 'accounts:intro_done' %}" class="win win--teal onboard__card intro__card" data-intro>
+    {% csrf_token %}
+    {% if again %}<input type="hidden" name="again" value="1">{% endif %}
+    <h2>반려식물 관리 서비스 둘러보기</h2>
+
+    <ol class="intro__slides">
+      <li class="intro__slide" data-slide aria-labelledby="intro-1">
+        <div class="intro__art">
+          <span class="frame frame--ok">{% crop_character crop "ok" 72 %}</span>
+          <span class="frame frame--thirsty">{% crop_character crop "thirsty" 72 %}</span>
+          <span class="frame frame--dark">{% crop_character crop "dark" 72 %}</span>
+        </div>
+        <h3 id="intro-1">식물이 먼저 말해 줘요</h3>
+        <p>물이나 빛이 모자라면 시들기 전에 알려 드려요.<br>화분 그림의 표정으로 지금 상태를 한눈에 볼 수 있어요.</p>
+      </li>
+      <li class="intro__slide" data-slide aria-labelledby="intro-2">
+        <div class="intro__art">{% pixel "drop" 48 "" %}{% pixel "star" 48 "" %}{% pixel "potion_red" 48 "" %}{% pixel "potion_blue" 48 "" %}</div>
+        <h3 id="intro-2">센서를 연결해 주세요</h3>
+        <p>내 식물 → 자세히 보기에서 센서 API 키를 받아요.<br>센서가 그 키로 값을 보내면 그래프와 상태가 채워져요.</p>
+      </li>
+      <li class="intro__slide" data-slide aria-labelledby="intro-3">
+        <div class="intro__art">{% pixel "envelope" 64 "" %}</div>
+        <h3 id="intro-3">필요할 때 알려 드려요</h3>
+        <p>물 부족, 빛 부족, 센서 연결 끊김이 생기면<br>알림 목록에 모여요.</p>
+      </li>
+      <li class="intro__slide" data-slide aria-labelledby="intro-4">
+        <div class="intro__art"><span class="frame frame--ok">{% crop_character crop "ok" 72 %}</span></div>
+        <h3 id="intro-4">사진과 다이어리로 남겨요</h3>
+        <p>자라는 모습은 사진첩에,<br>그날 있었던 일은 다이어리에 기록해 보세요.</p>
+      </li>
+    </ol>
+
+    <p class="intro__count" data-count aria-live="polite"></p>
+    <div class="intro__nav">
+      <button type="submit" class="btn btn--ghost btn--small" data-skip>{% if again %}닫기{% else %}건너뛰기{% endif %}</button>
+      <span class="intro__spacer"></span>
+      <button type="button" class="btn btn--ghost btn--small" data-prev hidden>이전</button>
+      <button type="button" class="btn btn--small" data-next hidden>다음</button>
+      <button type="submit" class="btn btn--small" data-finish>{% if again %}닫기{% else %}시작하기{% endif %}</button>
+    </div>
+  </form>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+  /* 한 장씩 보여 준다. JS가 없으면 네 장이 이어져 보이고 [시작하기]만 있다. */
+  (function () {
+    var root = document.querySelector("[data-intro]");
+    var slides = root.querySelectorAll("[data-slide]");
+    var prev = root.querySelector("[data-prev]");
+    var next = root.querySelector("[data-next]");
+    var finish = root.querySelector("[data-finish]");
+    var count = root.querySelector("[data-count]");
+    var index = 0;
+    function show(i) {
+      index = Math.max(0, Math.min(slides.length - 1, i));
+      slides.forEach(function (s, k) { s.hidden = k !== index; });
+      prev.hidden = index === 0;
+      next.hidden = index === slides.length - 1;
+      finish.hidden = index !== slides.length - 1;
+      count.textContent = index + 1 + " / " + slides.length;
+    }
+    prev.addEventListener("click", function () { show(index - 1); });
+    next.addEventListener("click", function () { show(index + 1); next.hidden || next.focus(); });
+    document.addEventListener("keydown", function (e) {
+      if (e.target.closest("input, textarea, select")) return;
+      if (e.key === "ArrowRight") show(index + 1);
+      if (e.key === "ArrowLeft") show(index - 1);
+    });
+    show(0);
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}사진첩 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<h1 class="page-title">사진첩</h1>
+<p class="page-desc">매일 아침 9시에 찍은 화분 사진과 AI 진단을 모아 봐요.</p>
+
+<section class="win win--purple" aria-labelledby="photo-title">
+  <h2 id="photo-title">화분 사진</h2>
+  <div class="photo-toolbar">
+  <nav class="chip-row" aria-label="화분 필터">
+    {% if plants %}<a class="chip" href="?" {% if not slot %}aria-current="true"{% endif %}>전체</a>{% endif %}
+    {% for plant in plants %}
+    <a class="chip" href="?plant={{ plant.slot }}" {% if slot == plant.slot %}aria-current="true"{% endif %}><span class="dot" style="--c: {{ plant.color }}"></span>{{ plant.title }}</a>
+    {% endfor %}
+  </nav>
+  {% if plants %}
+  <button type="button" class="btn btn--small" data-open-template="photo-upload-template" data-panel-title="사진 올리기" data-panel-color="purple">사진 올리기</button>
+  {% endif %}
+  </div>
+
+  {% if photos %}
+  <div class="photo-grid">
+    {% for photo in photos %}
+    <button type="button" class="photo-thumb" data-panel-url="{% url 'plants:photo_panel' photo.pk %}" data-panel-title="{{ photo.plant.title }} · {{ photo.day_number }}일차 · {{ photo.taken_at|date:'n월 j일 H:i' }}" data-panel-color="purple">
+      <img src="{{ photo.image.url }}" alt="{{ photo.plant.title }} {{ photo.day_number }}일차 사진" loading="lazy">
+      <span class="photo-thumb__cap"><span class="dot" style="--c: {{ photo.plant.color }}"></span>{{ photo.plant.title }} · {{ photo.day_number }}일차</span>
+    </button>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-cta">
+    <div class="frame frame--sky">{% crop_character my_profile.crop_slug "ok" 72 decorative=True %}</div>
+    {% if not plants %}
+    <p>아직 화분이 없어요. 식물을 등록하면 자라는 모습을 사진으로 남길 수 있어요.</p>
+    <a class="btn btn--small" href="{% url 'plants:list' %}?add=1">새 식물 추가</a>
+    {% else %}
+    <p>{% if slot %}이 화분의 사진이 아직 없어요.{% else %}아직 사진이 없어요.{% endif %} 자라는 모습을 올려 두면 날짜별로 모아 볼 수 있어요.</p>
+    <button type="button" class="btn btn--small" data-open-template="photo-upload-template" data-panel-title="사진 올리기" data-panel-color="purple">사진 올리기</button>
+    {% endif %}
+  </div>
+  {% endif %}
+</section>
+
+<template id="photo-upload-template">
+  <form method="post" action="{% url 'plants:photo_upload' %}" enctype="multipart/form-data" data-photo-upload data-max-bytes="{{ max_mb }}">
+    {% csrf_token %}
+    <div class="field">
+      <label for="up-plant">화분</label>
+      <select id="up-plant" name="plant">
+        {% for plant in plants %}<option value="{{ plant.pk }}" {% if plant.pk == selected_plant_id %}selected{% endif %}>{{ plant.title }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="up-image">사진 파일</label>
+      <input type="file" id="up-image" name="image" accept="image/jpeg,image/png,image/webp,image/gif" required>
+      <span class="help">JPG·PNG·WebP·GIF, {{ max_mb }}MB 이하. 긴 변이 1600px보다 크면 줄여서 저장해요.</span>
+      <span class="error" data-upload-error role="alert"></span>
+    </div>
+    <div class="field">
+      <label for="up-taken">촬영 시각</label>
+      <input type="datetime-local" id="up-taken" name="taken_at" value="{{ now_value }}" required class="input">
+    </div>
+    <div class="form-actions"><button class="btn" type="submit">올리기</button></div>
+  </form>
+</template>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/plants.js' %}"></script>
+<script>
+  // 큰 파일은 보내기 전에 알려 준다. (서버에서도 다시 검사)
+  document.addEventListener("submit", function (e) {
+    var form = e.target.closest("form[data-photo-upload]");
+    if (!form) return;
+    var file = form.querySelector('input[type="file"]').files[0];
+    var limit = Number(form.getAttribute("data-max-bytes")) * 1024 * 1024;
+    var err = form.querySelector("[data-upload-error]");
+    err.textContent = "";
+    if (file && file.size > limit) {
+      e.preventDefault();
+      err.textContent = "사진은 " + form.getAttribute("data-max-bytes") + "MB 이하만 올릴 수 있어요.";
+    } else if (file && !/^image\//.test(file.type)) {
+      e.preventDefault();
+      err.textContent = "이미지 파일만 올릴 수 있어요.";
+    }
+  });
+</script>
+{% endblock %}

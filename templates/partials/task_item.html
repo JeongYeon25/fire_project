@@ -1,0 +1,27 @@
+{% load plant_ui %}
+{# 사용자가 넣은 할 일 한 줄. overdue=True면 '지남' 표시와 [오늘로 옮기기], back은 처리 후 돌아갈 화면(home/tasks) #}
+<li class="todo-item task-item{% if task.is_done %} is-done{% endif %}{% if overdue %} is-overdue{% endif %}">
+  <label>
+    <input type="checkbox" data-task-url="{% url 'plants:task_check' task.pk %}" {% if task.is_done %}checked{% endif %}>
+    <span class="todo-text">{{ task.title }}</span>
+  </label>
+  <span class="task-meta">
+    {% if overdue %}<span class="tag tag--late">{{ task.due_date|date:"n월 j일" }} · 지남</span>{% elif show_date %}<span class="tag">{{ task.due_date|date:"n월 j일" }}</span>{% endif %}
+    {% if task.due_time %}<span class="tag">{{ task.due_time|time:"H:i" }}</span>{% endif %}
+    {% if task.plant %}<span class="tag tag--slot"><span class="dot" style="--c: {{ task.plant.color }}"></span> {{ task.plant.title }}</span>{% endif %}
+    {% if task.notify %}<span class="task-bell" title="알림 받기 켬">{% menu_icon "alerts" 12 %}<span class="sr-only">알림 받기 켬</span></span>{% endif %}
+  </span>
+  <span class="task-actions">
+    {% if overdue %}
+    <form method="post" action="{% url 'plants:task_today' task.pk %}">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ back }}">
+      <button type="submit" class="chip">오늘로 옮기기</button>
+    </form>
+    {% endif %}
+    <button type="button" class="chip" data-panel-url="{% url 'plants:task_panel' task.pk %}?next={{ back }}" data-panel-title="할 일 고치기" data-panel-color="green">고치기</button>
+    <form method="post" action="{% url 'plants:task_delete' task.pk %}" data-confirm="이 할 일을 지울까요?">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ back }}">
+      <button type="submit" class="chip chip--danger" aria-label="지우기: {{ task.title }}">지우기</button>
+    </form>
+  </span>
+</li>

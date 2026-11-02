@@ -1,0 +1,71 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}알림·설정 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<h1 class="page-title">알림·설정</h1>
+<p class="page-desc">챗봇이 보낸 알림을 다시 보고, 알림 받는 방법을 정해요.</p>
+
+<div class="grid home-grid">
+  <section class="win win--pink span-2" aria-labelledby="log-title">
+    <h2 id="log-title">알림 기록</h2>
+    <nav class="chip-row" aria-label="화분 필터" style="margin-bottom:12px">
+      <a class="chip" href="?" {% if not slot %}aria-current="true"{% endif %}>전체</a>
+      {% for plant in plants %}
+      <a class="chip" href="?plant={{ plant.slot }}" {% if slot == plant.slot %}aria-current="true"{% endif %}><span class="dot" style="--c: {{ plant.color }}"></span>{{ plant.title }}</a>
+      {% endfor %}
+    </nav>
+    {% if alerts %}
+    <ul class="alert-feed">
+      {% for alert in alerts %}{% include "partials/alert_item.html" %}{% endfor %}
+    </ul>
+    {% elif slot %}
+    <p class="empty-note">이 화분에는 아직 알림이 없어요.</p>
+    {% else %}
+    {% include "partials/empty_alerts.html" %}
+    {% endif %}
+  </section>
+
+  <section class="win win--green" aria-labelledby="setting-title" data-settings data-url="{% url 'alerts:save_setting' %}">
+    <h2 id="setting-title">알림 설정</h2>
+    <ul class="setting-list">
+      {% for t in toggles %}
+      <li class="setting-item">
+        <label class="setting-item__text" for="t-{{ t.name }}">{{ t.label }}<small>{{ t.help }}</small></label>
+        <input class="toggle" type="checkbox" role="switch" id="t-{{ t.name }}" data-field="{{ t.name }}" {% if t.on %}checked{% endif %}>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <h3 style="font-size:15px;margin:16px 0 8px">알림 받을 곳</h3>
+    <div class="choice-row" role="radiogroup" aria-label="알림 받을 곳">
+      {% for value, label in channels %}
+      <label><input type="radio" name="channel" value="{{ value }}" data-field="channel" {% if setting.channel == value %}checked{% endif %}><span class="chip">{{ label }}</span></label>
+      {% endfor %}
+    </div>
+    <p class="save-note" data-save-note role="status"></p>
+  </section>
+
+  <section class="win win--blue" aria-labelledby="me-title">
+    <h2 id="me-title">내 정보</h2>
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:12px">
+      <div class="frame frame--ok">{% crop_character my_profile.crop_slug "ok" 64 decorative=True %}</div>
+      <dl class="info-list" style="margin:0">
+        <dt>닉네임</dt><dd>{{ my_profile.nickname }}</dd>
+        <dt>키우는 작물</dt><dd>{{ my_profile.crop.name|default:"–" }}</dd>
+      </dl>
+    </div>
+    <div class="form-actions">
+      <a class="btn btn--ghost" href="{% url 'plants:list' %}">내 식물 관리로 가기</a>
+      <a class="btn btn--ghost" href="{% url 'plants:devices' %}">내 기기(센서) 관리</a>
+      <a class="btn btn--ghost" href="{% url 'accounts:intro' %}?again=1">사용 안내 다시 보기</a>
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button class="btn" type="submit">로그아웃</button>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/settings.js' %}"></script>
+{% endblock %}

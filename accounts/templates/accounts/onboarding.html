@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load plant_ui %}
+{% block title %}시작하기 · 반려식물 관리 서비스{% endblock %}
+{% block body %}
+<main class="onboard">
+  <div class="onboard__chars" aria-hidden="true">
+    {% for slug, tone in intro_crops %}
+    <div class="frame frame--{{ tone }}">{% crop_character slug "ok" 64 decorative=True %}</div>
+    {% endfor %}
+  </div>
+
+  <h1 class="page-title onboard__title">반려식물 관리 서비스</h1>
+  <p class="onboard__intro">센서가 식물 상태를 먼저 알려줘요. 식물을 자꾸 시들게 해도 괜찮아요.</p>
+
+  <ol class="steps" aria-label="시작 단계">
+    {% for s in steps %}
+      <li class="{% if s.done %}done{% endif %}" {% if s.no == step %}aria-current="step"{% endif %}>
+        <span class="steps__no">{% if s.done %}{% menu_icon "check" 12 %}<span class="sr-only">완료</span>{% else %}{{ s.no }}{% endif %}</span>
+        {{ s.name }}
+      </li>
+    {% endfor %}
+  </ol>
+
+  <div class="progress">
+    <div class="progress__label"><span>시작 준비</span><span>{{ progress }}%</span></div>
+    <div class="progress__bar" role="progressbar" aria-label="시작 준비" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress }}">
+      <div class="progress__fill" style="--p: {{ progress }}%"></div>
+    </div>
+  </div>
+
+  {% if messages %}
+  <ul class="messages onboard__card" role="status">
+    {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if step == 1 %}
+  <section class="win win--teal onboard__card" data-tabs>
+    <h2>1단계 · 회원가입 / 로그인</h2>
+    <div class="tabs" role="tablist" aria-label="회원가입 또는 로그인">
+      <button type="button" class="chip" role="tab" id="tab-signup" aria-controls="panel-signup" aria-selected="{% if tab != 'login' %}true{% else %}false{% endif %}">회원가입</button>
+      <button type="button" class="chip" role="tab" id="tab-login" aria-controls="panel-login" aria-selected="{% if tab == 'login' %}true{% else %}false{% endif %}">로그인</button>
+    </div>
+
+    <form id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" method="post" action="{% url 'accounts:signup' %}" novalidate {% if tab == 'login' %}hidden{% endif %}>
+      {% csrf_token %}
+      {{ signup_form.non_field_errors }}
+      {% for field in signup_form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <div class="form-actions"><button class="btn" type="submit">가입하고 다음으로</button></div>
+    </form>
+
+    <form id="panel-login" role="tabpanel" aria-labelledby="tab-login" method="post" action="{% url 'accounts:login' %}" novalidate {% if tab != 'login' %}hidden{% endif %}>
+      {% csrf_token %}
+      {% if login_form.non_field_errors %}<div class="error" style="margin-bottom:10px">{{ login_form.non_field_errors|join:" " }}</div>{% endif %}
+      {% for field in login_form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <div class="form-actions"><button class="btn" type="submit">로그인</button></div>
+    </form>
+  </section>
+
+  {% elif step == 2 %}
+  <section class="win win--orange onboard__card">
+    <h2>2단계 · 작물 선택</h2>
+    <p class="muted small" style="margin-bottom:12px">처음 키울 작물을 골라 주세요. 화분마다 나중에 바꿀 수 있어요.</p>
+    <form method="post" action="{% url 'accounts:crop' %}">
+      {% csrf_token %}
+      <fieldset style="border:0;padding:0;margin:0">
+        <legend class="sr-only">작물</legend>
+        <div class="option-grid">
+          {% for crop in crops %}
+          <label class="option-card">
+            <input type="radio" name="crop" value="{{ crop.pk }}" {% if crop.pk == selected_crop_id or not selected_crop_id and forloop.first %}checked{% endif %}>
+            <span class="option-card__body">
+              <span class="option-card__art">{% crop_character crop "ok" 40 decorative=True %}</span>
+              <strong><span class="dot" style="--c: {{ crop.color }}"></span>{{ crop.name }}</strong>
+              <dl>
+                <dt>난이도</dt><dd>{{ crop.difficulty }}</dd>
+                <dt>물</dt><dd>{{ crop.water }}</dd>
+                <dt>햇빛</dt><dd>{{ crop.sun }}</dd>
+              </dl>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <div class="form-actions">
+        <button class="btn" type="submit">다음</button>
+      </div>
+    </form>
+  </section>
+
+  {% else %}
+  <section class="win win--pink onboard__card">
+    <h2>3단계 · 이름 지어 주세요</h2>
+    <p class="muted small" style="margin-bottom:12px">{{ crop.name }} 화분의 상태에 따라 모습이 이렇게 바뀌어요.</p>
+    <div class="state-preview">
+      {% for state, word in states %}
+      <figure>
+        <div class="frame frame--{{ state }}">{% crop_character crop state 64 %}</div>
+        <figcaption>{{ word }}</figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+    <form method="post" action="{% url 'accounts:name' %}" novalidate data-name-form>
+      {% csrf_token %}
+      <div class="field">
+        <label for="{{ name_form.name.id_for_label }}">이름 (최대 {{ name_max }}자)</label>
+        <input type="text" name="name" id="{{ name_form.name.id_for_label }}" maxlength="{{ name_max }}" autocomplete="off"
+               placeholder="예: {{ crop.name_example }}" value="{{ name_form.name.value|default:'' }}"
+               aria-describedby="name-error" {% if name_form.name.errors %}aria-invalid="true"{% endif %}>
+        <p class="error" id="name-error" data-name-error role="alert">{% for e in name_form.name.errors %}{{ e }}{% endfor %}</p>
+      </div>
+      <div class="form-actions">
+        <a class="btn btn--ghost" href="?step=crop">이전</a>
+        <button class="btn" type="submit">시작하기</button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}
+{% block scripts %}
+{% load static %}
+<script src="{% static 'js/onboarding.js' %}"></script>
+{% endblock %}

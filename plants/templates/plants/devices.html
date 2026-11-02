@@ -1,0 +1,60 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}내 기기 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<h1 class="page-title">내 기기</h1>
+<p class="page-desc">화분 센서 값을 보내는 기기(라즈베리파이 등)를 등록하고, 어느 화분에 연결할지 정해요.</p>
+
+<div class="grid home-grid">
+  <section class="win win--blue span-2" aria-labelledby="devices-title">
+    <h2 id="devices-title">기기 목록</h2>
+    {% if rows %}
+    <ul class="device-list">
+      {% for row in rows %}
+      {% with device=row.device %}
+      <li class="device-item">
+        <div class="device-item__head">
+          <strong class="device-item__name">{{ device.title }}</strong>
+          <span class="tag tag--slot">{{ device.device_id }}</span>
+          <span class="state-chip state-chip--{{ row.state_chip }}">{{ row.state_label }}</span>
+        </div>
+        <dl class="info-list device-item__info">
+          <dt>마지막 수신</dt><dd>{% if device.last_seen %}{{ device.last_seen|date:"n월 j일 H:i" }}{% else %}–{% endif %}</dd>
+          <dt>기기 키</dt><dd>{% if device.has_key %}<code>{{ device.key_prefix }}…</code>{% else %}발급 전{% endif %}</dd>
+          <dt>연결한 화분</dt>
+          <dd>{% for link in row.links %}<span class="device-link"><span class="dot" style="--c: {{ link.plant.color }}"></span>{{ link.get_channel_display }} {{ link.plant.title }}</span>{% empty %}아직 없어요{% endfor %}</dd>
+        </dl>
+        <a class="btn btn--small" href="{% url 'plants:device' device.pk %}">설정 ›</a>
+      </li>
+      {% endwith %}
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-cta">
+      {% pixel "envelope" 32 "" %}
+      <p>아직 등록한 기기가 없어요. <b>기기를 등록하세요.</b> 이름을 정하면 기기에 넣을 전송 주소와 키를 알려 드려요.</p>
+      <a class="btn btn--small" href="#device-name">기기 등록하기</a>
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="win win--green" aria-labelledby="add-title">
+    <h2 id="add-title">새 기기 등록</h2>
+    {% if can_add %}
+    <form method="post" action="{% url 'plants:device_add' %}" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="nonce" value="{{ nonce }}">
+      <div class="field">
+        <label for="device-name">기기 이름 (최대 20자)</label>
+        <input type="text" id="device-name" name="name" maxlength="20" placeholder="예: 창가 라즈베리파이" autocomplete="off" required>
+        <span class="help">등록하면 기기 ID와 키를 한 번만 보여 드려요.</span>
+      </div>
+      <div class="form-actions"><button class="btn" type="submit">등록하고 키 받기</button></div>
+    </form>
+    {% else %}
+    <p class="empty-note">기기는 {{ limit }}대까지 등록할 수 있어요. 쓰지 않는 기기를 보관하면 새로 등록할 수 있어요.</p>
+    {% endif %}
+    <p class="muted small">지금 {{ rows|length }}대 / 최대 {{ limit }}대</p>
+  </section>
+</div>
+{% endblock %}

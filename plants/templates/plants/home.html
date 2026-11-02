@@ -1,0 +1,118 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}홈 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">홈</h1>
+    <p class="page-desc">오늘 화분 상태와 할 일을 한눈에 봐요.</p>
+  </div>
+</div>
+
+<div class="grid home-grid">
+  <section class="win win--orange span-2" aria-labelledby="summary-title">
+    <h2 id="summary-title">오늘의 요약</h2>
+    <p class="summary-hello">안녕, {{ my_profile.nickname }}! 오늘의 {{ my_profile.crop.name|default:"식물" }} 상태예요</p>
+    {% if not rows %}
+      <div class="empty-cta">
+        <p>아직 화분이 없어요. 키울 식물을 등록하면 상태를 알려 드려요.</p>
+        <a class="btn btn--small" href="{% url 'plants:list' %}?add=1">새 식물 추가</a>
+      </div>
+    {% else %}
+      <p class="summary-count">
+        {% if problem_count %}돌봐 줄 화분이 <b>{{ problem_count }}개</b> 있어요.{% endif %}
+        {% if nodata_plants %}{% if problem_count %} · {% endif %}아직 센서가 연결되지 않은 화분이 <b>{{ nodata_plants|length }}개</b> 있어요.{% endif %}
+        {% if offline_plants %}{% if problem_count or nodata_plants %} · {% endif %}센서 연결이 끊긴 화분이 <b>{{ offline_plants|length }}개</b> 있어요.{% endif %}
+        {% if not problem_count and not nodata_plants and not offline_plants %}모든 화분이 건강해요.{% endif %}
+      </p>
+      {% if first_waiting %}
+      <p class="summary-action"><a class="btn btn--small" href="{% url 'plants:list' %}?open={{ first_waiting.pk }}">{% if nodata_plants %}센서 연결하기{% else %}센서 확인하기{% endif %}</a></p>
+      {% endif %}
+      <div class="summary-chars">
+        {% for row in rows %}
+        <a class="summary-char" href="{% url 'plants:list' %}?open={{ row.plant.pk }}">
+          <span class="frame frame--{{ row.status.state }}{% if row.status.is_waiting %} is-waiting{% endif %}">{% crop_character row.plant.crop row.status.character_state 64 row.plant.short_name %}</span>
+          <span class="summary-char__name"><b>{{ row.plant.short_name }}</b> <span class="tag tag--slot">{{ row.plant.slot }}</span></span>
+          <span class="state-chip state-chip--{{ row.status.state }}">{{ row.status.label }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <p class="counsel-jump"><a class="link-more" href="#plant-counsel">식물 상담소 바로가기 ›</a></p>
+  </section>
+
+  <section class="win win--green" aria-labelledby="todo-title">
+    <h2 id="todo-title">오늘 할 일</h2>
+    {% if todos or today_tasks or overdue_tasks %}
+    <ul class="todo-list" data-todo-url="{% url 'plants:todo' %}" data-task-list>
+      {% for task in overdue_tasks %}{% include "partials/task_item.html" with overdue=True back="home" %}{% endfor %}
+      {% for item in todos %}
+      <li class="todo-item todo-item--auto">
+        <label>
+          <input type="checkbox" data-todo-key="{{ item.key }}" {% if item.checked %}checked{% endif %}>
+          <span class="todo-text">{{ item.text }}</span>
+        </label>
+        <span class="task-meta"><span class="tag">자동</span></span>
+      </li>
+      {% endfor %}
+      {% for task in today_tasks %}{% include "partials/task_item.html" with back="home" %}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty-note">할 일을 추가해 보세요. 날짜를 골라 미리 넣어 둘 수도 있어요.</p>
+    {% endif %}
+    <details class="task-add-wrap" {% if not todos and not today_tasks and not overdue_tasks %}open{% endif %}>
+      <summary>할 일 추가</summary>
+      {% include "partials/task_quick_add.html" with form=task_form back="home" prefix="home" %}
+    </details>
+    <p class="save-note" data-todo-note role="status"></p>
+    <div class="win-foot">
+      <a class="link-more" href="{% url 'plants:tasks' %}">{% if upcoming_count %}예정된 할 일 {{ upcoming_count }}개 · {% endif %}할 일 모두 보기 ›</a>
+    </div>
+  </section>
+
+  <section class="win win--pink" aria-labelledby="alert-title">
+    <h2 id="alert-title">최근 알림</h2>
+    {% if alerts %}
+    <ul class="alert-feed">
+      {% for alert in alerts %}{% include "partials/alert_item.html" %}{% endfor %}
+    </ul>
+    <div class="win-foot"><a class="link-more" href="{% url 'alerts:settings' %}">알림 전체 보기 ›</a></div>
+    {% else %}
+    {% include "partials/empty_alerts.html" %}
+    {% endif %}
+  </section>
+
+  {% include "advisor/_counsel.html" %}
+
+  <section class="win win--blue span-2" aria-labelledby="sensor-title">
+    <h2 id="sensor-title">지금 센서 값</h2>
+    {% if any_connected %}
+    <div class="sensor-tiles">
+      {% for tile in sensor_tiles %}
+      <a class="sensor-tile" href="{% url 'plants:graph' %}?metric={{ tile.key }}" aria-label="{{ tile.label }} 그래프 보기">
+        <span class="sensor-tile__head">{% pixel tile.icon 24 "" %}{{ tile.label }} <span class="muted small">{{ tile.unit }}</span></span>
+        <span class="sensor-tile__values">
+          {% for v in tile.values %}
+          <span><span class="dot" style="--c: {{ v.plant.color }}"></span><span class="sensor-tile__name">{{ v.plant.title }}</span>
+            {% if v.status.state == "nodata" %}<small class="muted">연결 전</small>{% elif v.status.state == "offline" %}<small class="muted">끊김</small>{% else %}<b>{{ v.value|num:tile.digits }}</b>{% endif %}
+          </span>
+          {% endfor %}
+        </span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-cta">
+      {% pixel "drop" 28 "" %}
+      <p>아직 센서 값이 없어요. 센서를 연결하면 토양수분·조도·온도·습도가 여기에 보여요.</p>
+      {% if first_waiting %}<a class="btn btn--small" href="{% url 'plants:list' %}?open={{ first_waiting.pk }}">센서 연결하기</a>
+      {% else %}<a class="btn btn--small" href="{% url 'plants:list' %}?add=1">새 식물 추가</a>{% endif %}
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/todo.js' %}"></script>
+<script src="{% static 'js/advisor.js' %}?v=2"></script>
+{% endblock %}

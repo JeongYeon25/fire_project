@@ -1,0 +1,23 @@
+.venv
+.venv/
+.env
+.env.*
+!.env.example
+db.sqlite3
+*.sqlite3
+*.sqlite3-journal
+*.zip
+media/
+sample_data/
+staticfiles/
+.vscode/
+__pycache__/
+*.pyc
+
+# 코드는 static/characters/만 쓴다. characters_v2는 원본 보관용(같은 파일)
+static/characters_v2/
+
+# 로컬 작업 문서
+CLAUDE.md
+README_dev.md
+docs/

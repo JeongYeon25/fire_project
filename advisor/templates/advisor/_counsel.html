@@ -1,0 +1,65 @@
+{% load plant_ui %}
+{# 홈 화면의 식물 상담소. 화분을 고르면 그 화분의 대화가 보인다(화분별 기록). 글은 모두 자동 이스케이프, JS는 textContent만. #}
+<section class="win win--teal span-2 counsel" id="plant-counsel" aria-labelledby="counsel-title">
+  <h2 id="counsel-title">식물 상담소</h2>
+  {% if not rows %}
+  <div class="empty-cta">
+    {% pixel "envelope" 28 "" %}
+    <p>먼저 식물을 등록해 주세요. 화분을 등록하면 그 화분의 센서 기록을 보고 쉽게 알려 드려요.</p>
+    <a class="btn btn--small" href="{% url 'plants:list' %}?add=1">새 식물 추가</a>
+  </div>
+  {% elif not chat.enabled %}
+  <p class="chat-off">{{ chat.disabled_text }}</p>
+  {% else %}
+  <div class="chat" data-chat data-store-key="plantChat.{{ user.pk }}" data-from-url="{% if request.GET.ask %}1{% endif %}">
+    <div class="counsel-plants" role="radiogroup" aria-label="상담할 화분">
+      {% for row in rows %}
+      <label class="counsel-plant">
+        <input type="radio" name="counsel-plant" value="{{ row.plant.pk }}"
+               data-history-url="{% url 'advisor:history' row.plant.pk %}"
+               data-ask-url="{% url 'advisor:ask' row.plant.pk %}"
+               data-clear-url="{% url 'advisor:clear' row.plant.pk %}"
+               {% if row.plant.pk == counsel_row.plant.pk %}checked{% endif %}>
+        <span class="counsel-plant__body">
+          <span class="counsel-plant__face{% if row.status.is_waiting %} is-waiting{% endif %}">{% crop_character row.plant.crop row.status.character_state 32 decorative=True %}</span>
+          <span class="counsel-plant__name">{{ row.plant.short_name }}</span>
+          <span class="counsel-plant__crop">{{ row.plant.crop.name }}</span>
+          <span class="tag tag--slot">{{ row.plant.slot }}</span>
+        </span>
+      </label>
+      {% endfor %}
+    </div>
+
+    <p class="chat-note" data-chat-note {% if not chat.note %}hidden{% endif %}>{{ chat.note }}</p>
+
+    <ol class="chat-log" data-chat-log aria-live="polite" aria-label="상담 대화">
+      {% for m in chat.messages %}
+      <li class="chat-msg chat-msg--{{ m.role }}{% if m.is_error %} chat-msg--error{% endif %}">
+        <span class="chat-msg__who">{% if m.role == "user" %}나{% else %}AI{% endif %} · {{ m.created_at|date:"n/j H:i" }}</span>
+        <p class="chat-msg__text">{{ m.content }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+    <p class="empty-note" data-chat-empty {% if chat.messages %}hidden{% endif %}>궁금한 걸 물어보면 이 화분의 센서 기록을 보고 쉽게 알려 드려요.</p>
+
+    <div class="chip-row chat-suggest" role="group" aria-label="추천 질문" data-chat-suggestions>
+      {% for q in chat.suggestions %}<button type="button" class="chip" data-chat-suggest>{{ q }}</button>{% endfor %}
+    </div>
+
+    <form class="chat-form" data-chat-form novalidate>
+      <label class="sr-only" for="counsel-input">질문</label>
+      <textarea id="counsel-input" name="question" rows="2" maxlength="{{ chat.max_len }}" placeholder="예: 잎이 처졌는데 왜 그래요?" data-chat-input required></textarea>
+      <div class="chat-form__row">
+        <span class="small muted" data-chat-count>0/{{ chat.max_len }}</span>
+        <span class="small muted" data-chat-remaining {% if chat.remaining is None %}hidden{% endif %}>{% if chat.remaining is not None %}오늘 남은 질문 {{ chat.remaining }}회{% endif %}</span>
+        <button type="submit" class="btn btn--small" data-chat-send>물어보기</button>
+      </div>
+      <p class="error" data-chat-error role="alert"></p>
+    </form>
+    <p class="chat-privacy">질문과 이 화분의 센서 요약이 AI 회사로 전송돼요. AI 답변은 참고용이에요.</p>
+    <div class="chat-tools" {% if not chat.messages %}hidden{% endif %} data-chat-tools>
+      <button type="button" class="btn btn--ghost btn--small" data-chat-clear>대화 지우기</button>
+    </div>
+  </div>
+  {% endif %}
+</section>

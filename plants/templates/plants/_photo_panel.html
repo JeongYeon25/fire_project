@@ -1,0 +1,37 @@
+{% load plant_ui %}
+<div class="panel" style="--title: var(--t-purple)">
+  <img class="photo-big" src="{{ photo.image.url }}" alt="{{ photo.plant.title }} {{ photo.day_number }}일차 사진">
+
+  <div class="sensor-tiles" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px">
+    <div class="sensor-tile">
+      <span class="sensor-tile__head">{% pixel "drop" 24 "" %}토양수분</span>
+      <b>{{ reading.moisture|num:0 }} %</b>
+    </div>
+    <div class="sensor-tile">
+      <span class="sensor-tile__head">{% pixel "star" 24 "" %}조도</span>
+      <b>{{ reading.light|lux_num }} lux</b>
+    </div>
+  </div>
+  {% if reading %}<p class="small muted" style="margin-top:6px">{{ reading.measured_at|date:"n월 j일 H:i" }} 측정값</p>{% endif %}
+
+  <div class="panel-section">
+    <h3>AI 진단</h3>
+    <p class="speech">{{ photo.diagnosis|default:"아직 진단 결과가 없어요." }}</p>
+  </div>
+
+  {% if photo.recommendation %}
+  <div class="panel-section">
+    <h3>추천 행동</h3>
+    <ul class="tip-list">
+      {% for line in photo.recommendation.splitlines %}{% if line %}<li>{{ line }}</li>{% endif %}{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="form-actions" style="margin-top:18px">
+    <form method="post" action="{% url 'plants:photo_delete' photo.pk %}" data-confirm="이 사진을 지울까요? 지운 사진은 되돌릴 수 없어요.">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--ghost btn--small">사진 삭제</button>
+    </form>
+  </div>
+</div>

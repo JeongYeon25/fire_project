@@ -1,0 +1,71 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}센서 API 키 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<h1 class="page-title">센서 API 키</h1>
+<p class="page-desc">{{ plant.short_name }} ({{ plant.slot_label }}) 전용 키예요. 화분 센서가 이 키로 측정값을 보내요.</p>
+
+<section class="win win--yellow key-card" aria-labelledby="key-title">
+  <h2 id="key-title">{{ plant.short_name }} · 센서 연결</h2>
+  <div class="key-card__head">
+    <div class="frame frame--ok">{% crop_character plant.crop "ok" 72 plant.short_name %}</div>
+    <dl class="info-list" style="margin:0">
+      <dt>화분</dt><dd>{{ plant.short_name }} <span class="tag tag--slot">{{ plant.slot }}</span></dd>
+      <dt>작물</dt><dd>{{ plant.crop.name }}</dd>
+      <dt>설명</dt><dd>{{ plant.condition|default:"–" }}</dd>
+    </dl>
+  </div>
+
+  {% if show_key %}
+  <div class="key-reveal">
+    <p class="key-reveal__warn">{% pixel "star" 20 "" %}<b>이 키는 지금 한 번만 보여 드려요.</b> 화면을 벗어나기 전에 센서 코드에 넣거나 안전한 곳에 적어 두세요.</p>
+    <div class="key-reveal__row">
+      <code class="key-box" id="api-key">{{ plant.api_key }}</code>
+      <button type="button" class="btn btn--small" data-copy-target="api-key">복사</button>
+    </div>
+    <p class="save-note" data-copy-note role="status"></p>
+
+    <details class="data-table-wrap">
+      <summary>센서에서 보내는 방법</summary>
+      <pre class="key-example">POST {{ request.scheme }}://{{ request.get_host }}{% url 'plants:readings' %}
+X-API-Key: {{ plant.api_key }}
+Content-Type: application/json
+
+{"moisture": 42.5, "light": 12.3, "temp": 23.1, "humidity": 55}</pre>
+    </details>
+  </div>
+  {% else %}
+  <div class="key-reveal key-reveal--hidden">
+    <p>보안을 위해 키는 발급할 때 한 번만 보여 드려요.<br>키를 잃어버렸다면 새로 발급해 주세요. 새로 발급하면 <b>이전 키로는 측정값을 보낼 수 없어요</b>.</p>
+  </div>
+  {% endif %}
+
+  <div class="form-actions" style="margin-top:16px">
+    <form method="post" action="{% url 'plants:key_reissue' plant.pk %}" data-confirm="{{ plant.title }}의 키를 새로 발급할까요? 이전 키를 쓰는 센서는 새 키로 바꿔야 해요.">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--ghost">키 다시 발급</button>
+    </form>
+    <a class="btn" href="{% url 'plants:list' %}?open={{ plant.pk }}">내 식물로 돌아가기</a>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var btn = document.querySelector("[data-copy-target]");
+    if (!btn) return;
+    var note = document.querySelector("[data-copy-note]");
+    btn.addEventListener("click", function () {
+      var text = document.getElementById(btn.getAttribute("data-copy-target")).textContent.trim();
+      if (!navigator.clipboard) {
+        note.textContent = "키를 길게 눌러 직접 복사해 주세요.";
+        return;
+      }
+      navigator.clipboard.writeText(text).then(
+        function () { note.textContent = "복사했어요."; },
+        function () { note.textContent = "복사하지 못했어요. 키를 직접 선택해서 복사해 주세요."; }
+      );
+    });
+  })();
+</script>
+{% endblock %}

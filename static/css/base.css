@@ -1,0 +1,351 @@
+/* 레트로 Y2K 윈도우 + 픽셀 게임 UI — 토큰과 기본 요소 */
+
+:root {
+  --bg: #bfe6f5;
+  --grid: rgba(255, 255, 255, 0.7);
+  --win: #fff1de;
+  --paper: #fffdf7;
+  --text: #3a2c33;
+  --text2: #5f4a55;
+  --line: #3d2f3f;
+  --dash: #bba58a;
+  --shadow: rgba(61, 47, 63, 0.28);
+  --green: #4cc27a;
+  --green-hi: #8ae6a8;
+  --yellow: #ffd75e;
+  --focus: #2a78d6;
+
+  --soft-green: #d9f3df;
+  --soft-sky: #d6ecff;
+  --soft-pink: #ffdbe6;
+  --soft-yellow: #fff0b0;
+  --soft-lavender: #e8defc;
+  --check-light: #fffaf0;
+
+  --pot-a: #2a78d6;
+  --pot-b: #eb6834;
+  --pot-c: #1baf7a;
+  --pot-d: #eda100;
+
+  --t-teal: #1fa397;
+  --t-blue: #4a8fdc;
+  --t-orange: #ee8a3a;
+  --t-pink: #e5628f;
+  --t-yellow: #cf9510;
+  --t-purple: #8570d6;
+  --t-green: #3aa863;
+
+  --win-buttons: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='16' viewBox='0 0 56 16'%3E%3Cg fill='%23fff8ec' stroke='%233d2f3f' stroke-width='2'%3E%3Crect x='1' y='1' width='14' height='14' rx='3'/%3E%3Crect x='21' y='1' width='14' height='14' rx='3'/%3E%3Crect x='41' y='1' width='14' height='14' rx='3'/%3E%3C/g%3E%3Crect x='5' y='10' width='6' height='2' fill='%233d2f3f'/%3E%3Crect x='25' y='5' width='6' height='6' fill='none' stroke='%233d2f3f' stroke-width='2'/%3E%3Cpath d='M45 5l6 6M51 5l-6 6' stroke='%233d2f3f' stroke-width='2'/%3E%3C/svg%3E");
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b2a47;
+    --grid: rgba(255, 255, 255, 0.07);
+    --win: #3d3042;
+    --paper: #2a2030;
+    --text: #f7ecdf;
+    --text2: #d9c8bf;
+    --line: #120c16;
+    --dash: #7d6a74;
+    --shadow: rgba(0, 0, 0, 0.45);
+
+    --soft-green: #2f5140;
+    --soft-sky: #2b4366;
+    --soft-pink: #5e3248;
+    --soft-yellow: #5c4f25;
+    --soft-lavender: #463b66;
+    --check-light: #34283a;
+
+    color-scheme: dark;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  font-family: "Galmuri11", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+h1, h2, h3, p, ul, ol { margin: 0; }
+img, svg { max-width: 100%; }
+a { color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.muted { color: var(--text2); }
+.small { font-size: 13px; }
+
+/* 페이지 제목: 흰 글씨 + 사방 외곽선 */
+.page-title {
+  color: #fff;
+  font-size: 28px;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
+  text-shadow:
+    2px 0 0 var(--line), -2px 0 0 var(--line), 0 2px 0 var(--line), 0 -2px 0 var(--line),
+    2px 2px 0 var(--line), -2px -2px 0 var(--line), 2px -2px 0 var(--line), -2px 2px 0 var(--line),
+    3px 4px 0 var(--line);
+}
+
+.page-desc {
+  margin: 6px 0 20px;
+  color: var(--text2);
+}
+
+@media (prefers-color-scheme: light) {
+  .page-desc { color: #3f3240; }
+}
+
+/* 창(카드) */
+.win {
+  --title: var(--t-teal);
+  position: relative;
+  background: var(--win);
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 var(--shadow);
+  padding: 14px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.win > h2:first-child,
+.win-title {
+  margin: -14px -14px 14px;
+  padding: 6px 76px 6px 12px;
+  background: var(--win-buttons) no-repeat right 8px center, var(--title);
+  border-bottom: 2px solid var(--line);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-shadow: 1px 1px 0 rgba(30, 20, 30, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.win--teal { --title: var(--t-teal); }
+.win--blue { --title: var(--t-blue); }
+.win--orange { --title: var(--t-orange); }
+.win--pink { --title: var(--t-pink); }
+.win--yellow { --title: var(--t-yellow); }
+.win--purple { --title: var(--t-purple); }
+.win--green { --title: var(--t-green); }
+
+.paper {
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+/* 초록 게임 버튼 */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 18px;
+  margin-bottom: 3px;
+  border: 2px solid var(--line);
+  border-radius: 9px;
+  background: linear-gradient(#8ae6a8 0 50%, #4cc27a 50% 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.65), 0 3px 0 var(--line);
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 1px 1px 0 rgba(30, 60, 40, 0.6);
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.05s;
+}
+
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px dashed rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.65), 0 1px 0 var(--line);
+}
+
+.btn--ghost {
+  background: var(--paper);
+  color: var(--text);
+  text-shadow: none;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4), 0 3px 0 var(--line);
+}
+
+.btn--ghost::after { border-color: var(--dash); }
+.btn--small { min-height: 32px; padding: 4px 12px; font-size: 13px; }
+.btn--block { width: 100%; }
+
+/* 칩·필터 */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chip[aria-pressed="true"],
+.chip[aria-current="true"],
+.chip[aria-selected="true"],
+.chip.is-on {
+  background: var(--yellow);
+  color: #3a2c33;
+  font-weight: 700;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--line);
+  border-radius: 2px;
+  background: var(--c, var(--green));
+  flex: none;
+}
+
+/* 입력 */
+.input,
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 9px;
+  box-shadow: inset 0 2px 0 rgba(61, 47, 63, 0.12);
+  color: var(--text);
+}
+
+textarea { resize: vertical; min-height: 110px; }
+
+.input:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--yellow), 0 0 0 5px var(--line);
+}
+
+.upper { text-transform: uppercase; }
+
+.field { display: grid; gap: 4px; margin-bottom: 12px; }
+.field label { font-weight: 700; font-size: 14px; }
+.field .help { font-size: 12px; color: var(--text2); }
+.errorlist, .error {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #c62f4f;
+  font-size: 13px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .errorlist, .error { color: #ff9db0; }
+}
+
+/* 네모 토글 */
+.toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: none;
+  width: 50px;
+  height: 28px;
+  margin: 0;
+  border: 2px solid var(--line);
+  border-radius: 7px;
+  background: var(--paper);
+  box-shadow: inset 0 2px 0 rgba(61, 47, 63, 0.15);
+  cursor: pointer;
+}
+
+.toggle::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--line);
+  border-radius: 3px;
+  background: #fff8ec;
+  transition: transform 0.12s steps(3);
+}
+
+.toggle:checked { background: var(--green); }
+.toggle:checked::before { transform: translateX(22px); }

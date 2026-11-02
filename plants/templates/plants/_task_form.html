@@ -1,0 +1,28 @@
+{# 할 일 고치기 팝업 본문 #}
+<form method="post" action="{% url 'plants:task_edit' task.pk %}" novalidate>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.GET.next|default:'tasks' }}">
+  <div class="field">
+    <label for="{{ form.title.id_for_label }}">할 일</label>
+    {{ form.title }}
+  </div>
+  <div class="edit-grid">
+    <div class="field" style="margin:0">
+      <label for="{{ form.due_date.id_for_label }}">날짜</label>
+      {{ form.due_date }}
+    </div>
+    <div class="field" style="margin:0">
+      <label for="{{ form.due_time.id_for_label }}">시각 (선택)</label>
+      {{ form.due_time }}
+    </div>
+    <div class="field edit-grid__wide" style="margin:0">
+      <label for="{{ form.plant.id_for_label }}">화분 (선택)</label>
+      {{ form.plant }}
+    </div>
+  </div>
+  <label class="setting-item" style="margin-top:12px">
+    <span class="setting-item__text">알림 받기<small>시각을 비워 두면 그날 아침 9시 기준이에요.</small></span>
+    <input type="checkbox" name="notify" class="toggle" {% if form.notify.value %}checked{% endif %}>
+  </label>
+  <div class="form-actions" style="margin-top:14px"><button class="btn" type="submit">저장</button></div>
+</form>

@@ -1,0 +1,130 @@
+{% load plant_ui %}
+<div class="panel" style="--title: var(--t-{{ status.title_color }})">
+  <div class="panel-grid">
+    <div class="panel-side">
+      <div class="frame frame--{{ status.state }}{% if status.is_waiting %} is-waiting{% endif %}" style="width:100%">{% crop_character plant.crop status.character_state 128 plant.short_name %}</div>
+      <strong class="panel-name">{{ plant.short_name }} <span class="tag tag--slot">{{ plant.slot }}</span></strong>
+      <span class="state-chip state-chip--{{ status.state }}">{{ status.label }}</span>
+      {% hp_bar status.hp 20 %}
+      <span class="crop-pill" style="--crop: {{ plant.crop.color }}">{{ plant.crop.name }}</span>
+      {% if plant.condition %}<span class="small muted"><span class="dot" style="--c: {{ plant.color }}"></span> {{ plant.condition }}</span>
+      {% else %}<a class="small" href="#edit-cond-{{ plant.pk }}" data-focus="edit-cond-{{ plant.pk }}">+ 설명 추가</a>{% endif %}
+    </div>
+
+    <div>
+      <p class="speech" style="margin-bottom:12px">“{{ status.message }}”</p>
+      {% if status.state == "nodata" %}
+      <div class="connect-guide">
+        <h3>센서를 연결해 주세요</h3>
+        <ol>
+          <li>아래 버튼으로 이 화분 전용 <b>센서 API 키</b>를 받아요(한 번만 보여 드려요).</li>
+          <li>화분 센서 설정에 그 키를 넣어요.</li>
+          <li>센서 전원을 켜고 값이 들어오면 상태를 알려 드려요.</li>
+        </ol>
+        <form method="post" action="{% url 'plants:key_reissue' plant.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--small">센서 API 키 받기</button>
+        </form>
+      </div>
+      {% else %}
+      {% if status.state == "offline" and latest %}<p class="small muted" style="margin-bottom:10px">마지막 측정: {{ latest.measured_at|date:"n월 j일 H:i" }}. 아래 값은 그때 값이에요.</p>{% endif %}
+      <div class="chip-row" role="group" aria-label="센서 항목 선택" style="margin-bottom:12px">
+        {% for g in gauges %}
+        <button type="button" class="chip" data-metric-chip="{{ g.key }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">{% pixel g.icon 16 "" %}{{ g.label }}</button>
+        {% endfor %}
+      </div>
+
+      {% for g in gauges %}
+      <div class="gauge-block" data-metric-gauge="{{ g.key }}" {% if not forloop.first %}hidden{% endif %}>
+        <div class="gauge-head">
+          <span class="gauge-head__name">{% pixel g.icon 20 "" %}{{ g.label }} <span class="small muted">{{ g.when }}</span></span>
+          <span><b>{{ g.value|num:g.digits }}</b> {{ g.unit }}
+            {% if g.value is not None %}<span class="tag">{% if g.in_zone %}적정{% else %}적정 구간 밖{% endif %}</span>{% endif %}
+          </span>
+        </div>
+        <div class="gauge" role="img" aria-label="{{ g.label }} {{ g.value|num:g.digits }}{{ g.unit }}, {{ g.note }}">
+          <div class="gauge__track" style="--fill: {{ g.fill }}%; --zl: {{ g.zone_left }}%; --zw: {{ g.zone_width }}%; --pc: {{ plant.color }}">
+            <div class="gauge__fill"></div>
+            <div class="gauge__zone"></div>
+          </div>
+        </div>
+        <p class="gauge-note">초록 상자 = 적정 구간 · {{ g.note }}</p>
+      </div>
+      {% endfor %}
+
+      <div class="panel-section">
+        <h3>변화 그래프 (최근 7일{% if compare_plant %}, {{ compare_plant.title|josa:"과,와" }} 비교{% endif %})</h3>
+        <div data-mini-graph data-url="{% url 'plants:graph_data' %}" data-plants="{{ compare_slots }}" data-metric="moisture" data-range="7d"></div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <h3>이렇게 해보세요</h3>
+    <ul class="tip-list">
+      {% for tip in status.tips %}<li>{{ tip }}</li>{% endfor %}
+    </ul>
+  </div>
+
+  <div class="panel-section">
+    <h3>식물 상담소</h3>
+    <a class="btn btn--small btn--ghost" href="{% url 'plants:home' %}?ask={{ plant.pk }}#plant-counsel">식물 상담소에서 이 화분에 대해 물어보기 ›</a>
+  </div>
+
+  <div class="panel-section">
+    <h3>최근 사진</h3>
+    {% if photos %}
+    <div class="thumb-row">
+      {% for photo in photos %}<img src="{{ photo.image.url }}" alt="{{ plant.title }} {{ photo.day_number }}일차 사진" loading="lazy">{% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-cta empty-cta--inline">
+      <p>사진을 올리면 여기에 보여요.</p>
+      <a class="btn btn--small btn--ghost" href="{% url 'plants:photos' %}?plant={{ plant.slot }}&amp;upload=1">사진 올리기</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="panel-section">
+    <h3>작물 바꾸기 / 이름 바꾸기</h3>
+    <form method="post" action="{% url 'plants:edit' plant.pk %}" novalidate data-plant-name-form
+          data-crop-confirm="작물을 바꾸면 그림도 새 작물로 바뀌고, 상태 판정 기준(물주기·조도)도 새 작물 기준으로 바뀌어요. 바꿀까요?">
+      {% csrf_token %}
+      <div class="edit-grid">
+        <div class="field" style="margin:0">
+          <label for="edit-crop-{{ plant.pk }}">작물</label>
+          <select id="edit-crop-{{ plant.pk }}" name="crop" data-initial="{{ plant.crop_id }}">
+            {% for crop in crops %}<option value="{{ crop.pk }}" data-example="{{ crop.name_example }}" {% if crop.pk == plant.crop_id %}selected{% endif %}>{{ crop.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="field" style="margin:0">
+          <label for="edit-name-{{ plant.pk }}">이름 (최대 {{ name_max }}자)</label>
+          <input type="text" id="edit-name-{{ plant.pk }}" name="name" value="{{ plant.name }}" maxlength="{{ name_max }}"
+                 placeholder="예: {{ plant.crop.name_example }}" autocomplete="off" aria-describedby="edit-name-error-{{ plant.pk }}">
+          <p class="error" id="edit-name-error-{{ plant.pk }}" data-name-error role="alert"></p>
+        </div>
+        <div class="field edit-grid__wide" style="margin:0">
+          <label for="edit-cond-{{ plant.pk }}">설명 · 실험 조건</label>
+          <input type="text" id="edit-cond-{{ plant.pk }}" name="condition" value="{{ plant.condition }}" maxlength="40" placeholder="창가, 물 줄임 등">
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:10px"><button class="btn btn--ghost btn--small" type="submit">저장</button></div>
+    </form>
+  </div>
+
+  {% if status.state != "nodata" %}
+  <div class="panel-section">
+    <h3>센서 연결</h3>
+    <p class="small muted" style="margin-bottom:8px">센서 API 키는 발급할 때 한 번만 보여 드려요. 잃어버렸다면 새로 발급해 주세요. 새로 발급하면 이전 키로는 측정값을 보낼 수 없어요.</p>
+    <form method="post" action="{% url 'plants:key_reissue' plant.pk %}" data-confirm="{{ plant.title }}의 키를 새로 발급할까요? 이전 키를 쓰는 센서는 새 키로 바꿔야 해요.">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--ghost btn--small">키 다시 발급</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div class="form-actions" style="margin-top:18px">
+    <a class="btn" href="{% url 'diary:index' %}?write={{ plant.pk }}#diary-form">이 화분 다이어리 쓰기</a>
+  </div>
+</div>

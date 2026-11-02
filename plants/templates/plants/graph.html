@@ -1,0 +1,102 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}그래프 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<h1 class="page-title">그래프</h1>
+<p class="page-desc">화분별 센서 값 변화를 비교해요. 그래프에 마우스를 올리거나 ← → 키로 값을 확인할 수 있어요.</p>
+
+<section class="win win--blue" aria-labelledby="graph-title">
+  <h2 id="graph-title">센서 그래프</h2>
+  {% if not plants %}
+  <div class="empty-cta">
+    {% pixel "star" 28 "" %}
+    <p>아직 화분이 없어요. 식물을 등록하고 센서를 연결하면 변화를 그래프로 볼 수 있어요.</p>
+    <a class="btn btn--small" href="{% url 'plants:list' %}?add=1">새 식물 추가</a>
+  </div>
+  {% elif not has_readings %}
+  <div class="empty-cta">
+    {% pixel "star" 28 "" %}
+    <p>아직 센서 값이 없어요. 센서를 연결하면 토양수분·조도·온도·습도 변화가 그래프로 그려져요.</p>
+    <a class="btn btn--small" href="{% url 'plants:list' %}?open={{ first_waiting.pk|default:plants.0.pk }}">센서 연결하기</a>
+  </div>
+  {% else %}
+  <div class="graph-controls" data-graph-controls>
+    <div class="graph-controls__row" role="group" aria-label="기간">
+      <span class="graph-controls__label">기간</span>
+      <div class="chip-row">
+        <button type="button" class="chip" data-range="today" aria-pressed="false">오늘</button>
+        <button type="button" class="chip" data-range="7d" aria-pressed="true">최근 7일</button>
+        <button type="button" class="chip" data-range="all" aria-pressed="false">전체</button>
+      </div>
+    </div>
+    <div class="graph-controls__row" role="group" aria-label="항목">
+      <span class="graph-controls__label">항목</span>
+      <div class="chip-row">
+        {% for key, m in metrics.items %}
+        <button type="button" class="chip" data-metric="{{ key }}" aria-pressed="{% if key == metric %}true{% else %}false{% endif %}">{% pixel m.icon 16 "" %}{{ m.label }}</button>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="graph-controls__row" role="group" aria-label="화분">
+      <span class="graph-controls__label">화분</span>
+      <div class="chip-row">
+        {% for plant in plants %}
+        <button type="button" class="chip" data-plant="{{ plant.slot }}" aria-pressed="true"><span class="dot" style="--c: {{ plant.color }}"></span>{{ plant.title }}</button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div data-graph data-url="{% url 'plants:graph_data' %}" data-metric="{{ metric }}" data-range="7d" data-table="true"></div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/graph.js' %}?v=2"></script>
+<script>
+  (function () {
+    var holder = document.querySelector("[data-graph]");
+    if (!holder) return;
+    var controls = document.querySelector("[data-graph-controls]");
+    var graph = PlantGraph.create(holder, {
+      table: true,
+      height: 340,
+      // 고른 기간에 값이 없으면 전체 기간으로 바꿔 보는 버튼
+      emptyAction: {
+        label: "전체 기간 보기",
+        when: function (data) { return data.range !== "all"; },
+        run: function () { controls.querySelector('[data-range="all"]').click(); },
+      },
+    });
+
+    function pressedValues(attr) {
+      return Array.prototype.map.call(controls.querySelectorAll("[" + attr + "][aria-pressed='true']"), function (b) {
+        return b.getAttribute(attr);
+      });
+    }
+    function reload() {
+      graph.load({
+        metric: pressedValues("data-metric")[0],
+        range: pressedValues("data-range")[0],
+        plants: pressedValues("data-plant").join(","),
+      });
+    }
+    controls.addEventListener("click", function (e) {
+      var btn = e.target.closest("button.chip");
+      if (!btn) return;
+      if (btn.hasAttribute("data-plant")) {
+        var on = btn.getAttribute("aria-pressed") === "true";
+        if (on && pressedValues("data-plant").length === 1) return;
+        btn.setAttribute("aria-pressed", on ? "false" : "true");
+      } else {
+        var attr = btn.hasAttribute("data-range") ? "data-range" : "data-metric";
+        controls.querySelectorAll("[" + attr + "]").forEach(function (b) {
+          b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+        });
+      }
+      reload();
+    });
+    reload();
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+/* 넓은 화면(1100px 이상)에서만 요소를 조금 작게. 모바일·태블릿 레이아웃은 그대로 둔다. */
+
+@media (min-width: 1100px) {
+  body { font-size: 14px; }
+
+  /* 본문: 최대 1040px, 사이드 메뉴 옆에 왼쪽 정렬 */
+  .main {
+    max-width: 1040px;
+    margin: 0;
+    padding: 24px 24px 40px;
+  }
+
+  /* 창 제목줄: 높이 30px(2px 아래 선 포함), 글자 13px */
+  .win > h2:first-child,
+  .win-title {
+    padding: 4px 76px 4px 12px;
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  .dialog-bar { padding: 2px 6px 2px 12px; min-height: 30px; }
+  .dialog-bar h2 { font-size: 13px; line-height: 20px; }
+  .win-close { width: 22px; height: 22px; font-size: 15px; }
+
+  /* 내 식물: 한 줄에 4개. 칸이 모자란 폭에서는 최소 폭을 줄여 가로 넘침을 막는다. */
+  .plant-grid {
+    grid-template-columns: repeat(4, minmax(min(200px, calc((100% - 3 * 16px) / 4)), 1fr));
+    gap: 16px;
+  }
+
+  .plant-card .frame {
+    width: 100%;
+    max-width: 112px;
+    align-self: center;
+  }
+
+  .add-card { min-height: 240px; }
+
+  /* 작물 그림 크기는 화면 폭에 따라 */
+  .plant-card .frame :is(.pixel-art, .crop-img) { width: clamp(64px, 5.5vw, 88px); height: auto; }
+  .summary-char .frame :is(.pixel-art, .crop-img) { width: clamp(48px, 4vw, 64px); height: auto; }
+  .panel-side .frame :is(.pixel-art, .crop-img) { width: clamp(88px, 7.5vw, 112px); height: auto; }
+
+  /* 홈: 할 일·알림 2열, 센서 값 한 줄 4칸 */
+  .home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .sensor-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+
+  /* 상세 팝업 */
+  .win-dialog { width: min(560px, calc(100vw - 24px)); }
+  .dialog-body { padding: 14px 16px 16px; }
+  .panel-grid { grid-template-columns: 140px minmax(0, 1fr); gap: 14px; }
+}

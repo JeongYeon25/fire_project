@@ -1,0 +1,74 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}내 식물 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<h1 class="page-title">내 식물</h1>
+<p class="page-desc">화분을 누르면 자세한 상태와 돌보는 방법을 볼 수 있어요.</p>
+
+{% if not rows %}
+<div class="win win--green empty-win">
+  <h2>처음 오셨네요</h2>
+  <div class="empty-cta">
+    <p>아직 등록한 화분이 없어요. 키울 식물의 작물과 이름을 정하면 센서 연결 방법을 알려 드려요.</p>
+    <button type="button" class="btn btn--small" data-open-template="add-plant-template" data-panel-title="새 식물 추가 · {{ next_slot }} 화분" data-panel-color="green">새 식물 추가</button>
+  </div>
+</div>
+{% endif %}
+
+<div class="plant-grid" data-open-id="{{ open_id }}">
+  {% for row in rows %}
+  {% with plant=row.plant status=row.status %}
+  <article class="win win--{{ status.title_color }} plant-card" data-plant-card>
+    <h2>{{ plant.short_name }}</h2>
+    <div class="plant-card__top">
+      <span class="chip-row"><span class="crop-pill" style="--crop: {{ plant.crop.color }}">{{ plant.crop.name }}</span><span class="tag tag--slot" title="{{ plant.slot_label }}">{{ plant.slot }}</span></span>
+      <span class="state-chip state-chip--{{ status.state }}">{{ status.label }}</span>
+    </div>
+    <div class="frame frame--{{ status.state }}{% if status.is_waiting %} is-waiting{% endif %}">{% crop_character plant.crop status.character_state 96 plant.short_name %}</div>
+    {% if plant.condition %}<div class="plant-card__cond"><span class="dot" style="--c: {{ plant.color }}"></span>{{ plant.condition }}</div>{% endif %}
+    <div class="plant-card__row">{% hp_bar status.hp %}</div>
+    <p class="speech">“{{ status.message }}”</p>
+    <button type="button" class="chip plant-card__more" data-panel-url="{% url 'plants:panel' plant.pk %}" data-panel-title="{{ plant.short_name }} · {{ plant.slot_label }}" data-panel-color="{{ status.title_color }}" data-plant-id="{{ plant.pk }}">{% if status.state == "nodata" %}센서 연결하기 ›{% else %}자세히 보기 ›{% endif %}</button>
+  </article>
+  {% endwith %}
+  {% endfor %}
+
+  {% if next_slot %}
+  <button type="button" class="add-card" data-open-template="add-plant-template" data-panel-title="새 식물 추가 · {{ next_slot }} 화분" data-panel-color="green">
+    <span class="add-card__plus" aria-hidden="true">+</span>
+    새 식물 추가
+  </button>
+  {% endif %}
+</div>
+
+<template id="add-plant-template">
+  <form method="post" action="{% url 'plants:add' %}" novalidate data-plant-name-form>
+    {% csrf_token %}
+    <p class="muted small" style="margin-bottom:12px">{{ next_slot }} 화분 자리에 등록돼요. 등록하면 이 화분 전용 센서 API 키를 한 번 보여 드려요.</p>
+    <fieldset class="field" style="border:0;padding:0">
+      <legend style="font-weight:700;font-size:14px;margin-bottom:6px">작물</legend>
+      <div class="crop-choices">
+        {% for crop in crops %}
+        <label class="crop-choice">
+          <input type="radio" name="crop" value="{{ crop.pk }}" data-example="{{ crop.name_example }}" {% if crop.pk == default_crop_id %}checked{% endif %}>
+          <span class="crop-choice__body">{% crop_character crop "ok" 40 decorative=True %}<span>{{ crop.name }}</span></span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <div class="field">
+      <label for="add-name">이름 (최대 {{ name_max }}자)</label>
+      <input type="text" id="add-name" name="name" maxlength="{{ name_max }}" placeholder="예: {{ default_example }}" autocomplete="off" aria-describedby="add-name-error">
+      <p class="error" id="add-name-error" data-name-error role="alert"></p>
+    </div>
+    <div class="field">
+      <label for="add-cond">설명 · 실험 조건 (선택)</label>
+      <input type="text" id="add-cond" name="condition" maxlength="40" placeholder="창가, 물 줄임 등">
+    </div>
+    <div class="form-actions"><button class="btn" type="submit">등록하기</button></div>
+  </form>
+</template>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/graph.js' %}?v=2"></script>
+<script src="{% static 'js/plants.js' %}"></script>{% endblock %}

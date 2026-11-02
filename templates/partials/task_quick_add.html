@@ -1,0 +1,13 @@
+{# 할 일 빠른 추가. form = TaskForm, back = 처리 후 돌아갈 화면 #}
+<form method="post" action="{% url 'plants:task_add' %}" class="task-add" novalidate>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ back }}">
+  <label class="sr-only" for="{{ prefix|default:'qa' }}-title">할 일</label>
+  <input type="text" id="{{ prefix|default:'qa' }}-title" name="title" maxlength="60" required placeholder="물 주기, 분갈이하기처럼 적어 주세요" autocomplete="off" class="task-add__title">
+  <div class="task-add__row">
+    <label class="task-add__field">날짜 <input type="date" name="due_date" value="{{ form.due_date.value|date:'Y-m-d' }}" required class="input"></label>
+    <label class="task-add__field">시각(선택) <input type="time" name="due_time" class="input"></label>
+    <label class="task-add__notify"><input type="checkbox" name="notify" class="toggle" checked> 알림 받기</label>
+    <button class="btn btn--small" type="submit">추가</button>
+  </div>
+</form>

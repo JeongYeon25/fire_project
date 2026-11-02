@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static plant_ui %}
+{% block body %}
+<div class="app">
+  <nav class="side" aria-label="메뉴">
+    <a class="side__logo" href="{% url 'plants:home' %}">
+      <span class="side__face">{% crop_character my_profile.crop_slug "ok" 24 decorative=True %}</span>
+      <span>식물 도우미</span>
+    </a>
+    <div class="nav">
+      <a href="{% url 'plants:home' %}" {% if nav == "home" %}aria-current="page"{% endif %}>{% menu_icon "home" %}<span>홈</span></a>
+      <a href="{% url 'plants:list' %}" {% if nav == "plants" %}aria-current="page"{% endif %}>{% menu_icon "plants" %}<span>내 식물</span></a>
+      <a href="{% url 'plants:graph' %}" {% if nav == "graph" %}aria-current="page"{% endif %}>{% menu_icon "graph" %}<span>그래프</span></a>
+      <a href="{% url 'plants:photos' %}" {% if nav == "photos" %}aria-current="page"{% endif %}>{% menu_icon "photos" %}<span>사진첩</span></a>
+      <a href="{% url 'diary:index' %}" {% if nav == "diary" %}aria-current="page"{% endif %}>{% menu_icon "diary" %}<span>다이어리</span></a>
+      <a class="nav__desktop" href="{% url 'plants:devices' %}" {% if nav == "devices" %}aria-current="page"{% endif %}>{% menu_icon "devices" %}<span>내 기기</span></a>
+      <a href="{% url 'alerts:settings' %}" {% if nav == "alerts" %}aria-current="page"{% endif %}>{% menu_icon "alerts" %}<span class="nav__long">알림·설정</span><span class="nav__short">알림</span></a>
+    </div>
+    <div class="side__me">
+      <span class="muted">내 정보</span>
+      <div class="side__me-row">
+        <strong>{{ my_profile.nickname }}</strong>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button class="btn btn--ghost btn--small" type="submit">로그아웃</button>
+        </form>
+      </div>
+      <span>키우는 작물 · {{ my_profile.crop.name|default:"–" }}</span>
+    </div>
+  </nav>
+
+  <main class="main" id="main">
+    {% if messages %}
+    <ul class="messages" role="status">
+      {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<dialog class="win-dialog" id="app-dialog" aria-labelledby="app-dialog-title">
+  <div class="dialog-bar">
+    <h2 id="app-dialog-title"></h2>
+    <button type="button" class="win-close" data-dialog-close aria-label="닫기">×</button>
+  </div>
+  <div class="dialog-body" id="app-dialog-body"></div>
+</dialog>
+{% endblock %}

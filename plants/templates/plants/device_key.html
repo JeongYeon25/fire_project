@@ -1,0 +1,68 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}기기 연결 정보 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<h1 class="page-title">{% if created %}기기를 등록했어요{% else %}새 키를 발급했어요{% endif %}</h1>
+<p class="page-desc">{{ device.title }}에 아래 세 가지를 넣으면 계속 연결돼요.{% if not created %} 이전 키는 이제 쓸 수 없어요.{% endif %}</p>
+
+<section class="win win--yellow key-card" aria-labelledby="key-title">
+  <h2 id="key-title">{{ device.title }} · 연결 정보</h2>
+  <div class="key-reveal">
+    <p class="key-reveal__warn">{% pixel "star" 20 "" %}<b>키는 지금 한 번만 보여 드려요.</b> 화면을 벗어나기 전에 기기 설정에 넣거나 안전한 곳에 적어 두세요. 잊어버리면 다시 발급하면 돼요.</p>
+
+    <p class="device-key-label">전송 주소</p>
+    <div class="key-reveal__row">
+      <code class="key-box" id="send-url">{{ send_url }}</code>
+      <button type="button" class="btn btn--small" data-copy-target="send-url">복사</button>
+    </div>
+    <p class="device-key-label">기기 ID (device_id)</p>
+    <div class="key-reveal__row">
+      <code class="key-box" id="device-id">{{ device.device_id }}</code>
+      <button type="button" class="btn btn--small" data-copy-target="device-id">복사</button>
+    </div>
+    <p class="device-key-label">키 (X-API-Key)</p>
+    <div class="key-reveal__row">
+      <code class="key-box" id="device-key">{{ raw_key }}</code>
+      <button type="button" class="btn btn--small" data-copy-target="device-key">복사</button>
+    </div>
+    <p class="save-note" data-copy-note role="status"></p>
+
+    <details class="data-table-wrap">
+      <summary>기기에서 보내는 방법</summary>
+      <pre class="key-example">POST {{ send_url }}
+X-API-Key: (위의 키)
+Content-Type: application/json
+
+{"device_id": "{{ device.device_id }}",
+ "readings": [{"time": "2026-10-21T14:30:00", "soil1": 412, "soil2": 398,
+               "soil3": 455, "soil4": 430, "light": 3421.7, "temp": 23.4,
+               "hum": 52.0, "n_samples": 1, "note": ""}]}</pre>
+    </details>
+  </div>
+
+  <div class="form-actions" style="margin-top:16px">
+    <a class="btn" href="{% url 'plants:device' device.pk %}">{% if created %}채널에 화분 연결하기{% else %}기기 설정으로{% endif %}</a>
+    <a class="btn btn--ghost" href="{% url 'plants:devices' %}">내 기기 목록</a>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var note = document.querySelector("[data-copy-note]");
+    document.querySelectorAll("[data-copy-target]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var text = document.getElementById(btn.getAttribute("data-copy-target")).textContent.trim();
+        if (!navigator.clipboard) {
+          note.textContent = "글자를 길게 눌러 직접 복사해 주세요.";
+          return;
+        }
+        navigator.clipboard.writeText(text).then(
+          function () { note.textContent = "복사했어요."; },
+          function () { note.textContent = "복사하지 못했어요. 글자를 직접 선택해서 복사해 주세요."; }
+        );
+      });
+    });
+  })();
+</script>
+{% endblock %}

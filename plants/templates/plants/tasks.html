@@ -1,0 +1,70 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}할 일 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">할 일</h1>
+    <p class="page-desc">날짜를 정해 미리 넣어 두면 그날 홈의 '오늘 할 일'에 나와요. 오늘은 {{ today|date:"n월 j일 (D)" }}이에요.</p>
+  </div>
+  <a class="btn btn--ghost btn--small" href="{% url 'plants:home' %}">홈으로</a>
+</div>
+
+<div class="grid tasks-grid">
+  <section class="win win--green" aria-labelledby="add-title">
+    <h2 id="add-title">할 일 추가</h2>
+    {% include "partials/task_quick_add.html" with form=task_form back="tasks" prefix="tp" %}
+  </section>
+
+  {% if overdue_tasks %}
+  <section class="win win--pink" aria-labelledby="late-title">
+    <h2 id="late-title">지난 할 일 ({{ overdue_tasks|length }})</h2>
+    <p class="small muted" style="margin-bottom:10px">날짜가 지났는데 아직 체크하지 않은 할 일이에요. 했으면 체크하고, 아직이면 오늘로 옮겨 주세요.</p>
+    <ul class="todo-list" data-task-list>
+      {% for task in overdue_tasks %}{% include "partials/task_item.html" with overdue=True back="tasks" %}{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="win win--orange" aria-labelledby="today-title">
+    <h2 id="today-title">오늘 ({{ today|date:"n월 j일" }})</h2>
+    {% if today_tasks %}
+    <ul class="todo-list" data-task-list>
+      {% for task in today_tasks %}{% include "partials/task_item.html" with back="tasks" %}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty-note">오늘 넣어 둔 할 일이 없어요. 위에서 추가해 보세요.</p>
+    {% endif %}
+  </section>
+
+  <section class="win win--blue" aria-labelledby="next-title">
+    <h2 id="next-title">예정된 할 일 ({{ upcoming_count }})</h2>
+    {% if upcoming_groups %}
+      {% for date, items in upcoming_groups %}
+      <h3 class="task-date">{{ date|date:"n월 j일 (D)" }}</h3>
+      <ul class="todo-list" data-task-list>
+        {% for task in items %}{% include "partials/task_item.html" with back="tasks" %}{% endfor %}
+      </ul>
+      {% endfor %}
+    {% else %}
+    <p class="empty-note">예정된 할 일이 없어요. 날짜를 골라 미리 넣어 둘 수 있어요.</p>
+    {% endif %}
+  </section>
+
+  {% if done_tasks %}
+  <section class="win win--teal" aria-labelledby="done-title">
+    <h2 id="done-title">최근 끝낸 할 일</h2>
+    <details>
+      <summary>최근 7일 동안 끝낸 할 일 {{ done_tasks|length }}개 보기</summary>
+      <ul class="todo-list" data-task-list style="margin-top:10px">
+        {% for task in done_tasks %}{% include "partials/task_item.html" with back="tasks" show_date=True %}{% endfor %}
+      </ul>
+    </details>
+  </section>
+  {% endif %}
+</div>
+<p class="save-note" data-todo-note role="status"></p>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/todo.js' %}"></script>
+{% endblock %}

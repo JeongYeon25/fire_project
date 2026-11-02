@@ -1,0 +1,54 @@
+{% extends "app_base.html" %}
+{% load plant_ui %}
+{% block title %}다이어리 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<h1 class="page-title">다이어리</h1>
+<p class="page-desc">나만 보는 식물 일기예요. 물 준 날, 새 잎이 난 날을 남겨 두세요.</p>
+
+<div class="diary-layout">
+  <section class="win win--yellow" aria-labelledby="diary-form" id="diary-write">
+    <h2 id="diary-form">다이어리 쓰기</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+      </div>
+      {% endfor %}
+      <div class="form-actions"><button class="btn" type="submit">남기기</button></div>
+    </form>
+  </section>
+
+  <section class="win win--teal" aria-labelledby="diary-list-title">
+    <h2 id="diary-list-title">내 다이어리</h2>
+    <nav class="chip-row" aria-label="화분 필터" style="margin-bottom:12px">
+      {% if plants %}<a class="chip" href="?" {% if not slot %}aria-current="true"{% endif %}>전체</a>{% endif %}
+      {% for plant in plants %}
+      <a class="chip" href="?plant={{ plant.slot }}" {% if slot == plant.slot %}aria-current="true"{% endif %}><span class="dot" style="--c: {{ plant.color }}"></span>{{ plant.title }}</a>
+      {% endfor %}
+    </nav>
+    {% if entries %}
+    <ul class="diary-list">
+      {% for entry in entries %}
+      <li class="diary-entry {% if entry.is_auto %}diary-entry--auto{% endif %}">
+        <div class="diary-entry__meta">
+          <time datetime="{{ entry.created_at|date:'c' }}"><strong>{{ entry.created_at|date:"n월 j일 H:i" }}</strong></time>
+          {% if entry.plant %}<span class="tag tag--slot"><span class="dot" style="--c: {{ entry.plant.color }}"></span> {{ entry.plant.title }}</span>{% endif %}
+          {% if entry.is_auto %}<span class="tag">자동 기록</span>{% endif %}
+        </div>
+        <p>{{ entry.content }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-cta">
+      {% pixel "envelope" 28 "" %}
+      <p>{% if slot %}이 화분의 기록이 아직 없어요.{% else %}아직 기록이 없어요.{% endif %} 물 준 날, 새 잎이 난 날처럼 오늘 있었던 일을 남겨 보세요.</p>
+      <a class="btn btn--small" href="#id_content" data-focus="id_content">첫 기록 쓰기</a>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

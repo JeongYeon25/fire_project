@@ -1,0 +1,18 @@
+{% load plant_ui %}
+<li class="alert-item{% if alert.is_resolved %} alert-item--resolved{% endif %}">
+  <span class="alert-item__icon">{% pixel "envelope" 24 "챗봇 알림" %}</span>
+  <div class="bubble">
+    <div class="bubble__meta">
+      <span class="tag tag--slot"><span class="dot" style="--c: {{ alert.plant.color }}"></span> {{ alert.plant.title }}</span>
+      <span>{{ alert.get_kind_display }} ·{{ alert.sent_at|date:"n월 j일 H:i" }}</span>
+      {% if alert.tracks_resolution %}
+        {% if alert.is_resolved %}
+        <span class="tag tag--done">해결됨 · {{ alert.resolved_at|date:"n월 j일 H:i" }}</span>
+        {% else %}
+        <span class="tag tag--open">확인 필요</span>
+        {% endif %}
+      {% endif %}
+    </div>
+    {{ alert.message }}
+  </div>
+</li>

@@ -1,0 +1,62 @@
+{% extends "app_base.html" %}
+{% load static plant_ui %}
+{% block title %}{{ device.title }} · 내 기기 · 반려식물 관리 서비스{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ device.title }}</h1>
+<p class="page-desc"><a href="{% url 'plants:devices' %}">‹ 내 기기</a></p>
+
+<div class="grid home-grid">
+  <section class="win win--blue" aria-labelledby="info-title">
+    <h2 id="info-title">기기 정보</h2>
+    <dl class="info-list">
+      <dt>기기 ID</dt><dd><code>{{ device.device_id }}</code></dd>
+      <dt>상태</dt><dd><span class="state-chip state-chip--{{ state_chip }}">{{ state_label }}</span></dd>
+      <dt>마지막 수신</dt><dd>{% if device.last_seen %}{{ device.last_seen|date:"n월 j일 H:i" }}{% else %}–{% endif %}</dd>
+      <dt>전송 주소</dt><dd class="device-url"><code>{{ send_url }}</code></dd>
+      <dt>기기 키</dt><dd>{% if device.has_key %}<code>{{ device.key_prefix }}…</code>{% else %}발급 전{% endif %}</dd>
+    </dl>
+    <p class="muted small">1시간 넘게 값이 오지 않으면 "연결 끊김"으로 보여요. 키는 보안을 위해 발급할 때 한 번만 보여 드려요.</p>
+  </section>
+
+  <section class="win win--green" aria-labelledby="channel-title">
+    <h2 id="channel-title">센서 채널 연결</h2>
+    {% if has_plants %}
+    <form method="post" action="{% url 'plants:device_channels' device.pk %}">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="field device-channel">
+        <label for="{{ field.id_for_label }}">{{ field.label }} 토양수분</label>
+        {{ field }}
+      </div>
+      {% endfor %}
+      <p class="muted small">한 화분은 한 채널에만 연결해요. 바꾸면 이 기기에서 받은 값으로 화분 측정값을 다시 계산하고, 연결을 푼 화분에서는 이 기기 값이 빠져요. 조도·온도·습도는 연결한 화분 모두에 들어가요.</p>
+      <div class="form-actions"><button class="btn" type="submit">연결 저장</button></div>
+    </form>
+    {% else %}
+    <div class="empty-cta empty-cta--inline">
+      <p>연결할 화분이 아직 없어요. 화분을 먼저 등록하세요.</p>
+      <a class="btn btn--small" href="{% url 'plants:list' %}">새 식물 추가하러 가기</a>
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="win win--yellow" aria-labelledby="key-title">
+    <h2 id="key-title">기기 키</h2>
+    <p>키를 잃어버렸거나 다른 사람이 알게 됐다면 새로 발급하세요. <b>이전 키는 바로 쓸 수 없게 돼요.</b></p>
+    <form method="post" action="{% url 'plants:device_key_reissue' device.pk %}" data-confirm="{{ device.title }}의 키를 새로 발급할까요? 이전 키를 쓰는 기기는 새 키로 바꿀 때까지 값을 보낼 수 없어요.">
+      {% csrf_token %}
+      <input type="hidden" name="nonce" value="{{ nonce }}">
+      <div class="form-actions"><button type="submit" class="btn btn--ghost">키 다시 발급</button></div>
+    </form>
+  </section>
+
+  <section class="win win--pink" aria-labelledby="archive-title">
+    <h2 id="archive-title">기기 보관</h2>
+    <p>더 쓰지 않는 기기는 보관하세요. 키가 바로 무효가 되고 채널 연결이 풀려요. 지금까지 받은 값과 화분 그래프는 그대로 남아요.</p>
+    <form method="post" action="{% url 'plants:device_archive' device.pk %}" data-confirm="{{ device.title|josa:"을,를" }} 보관할까요? 키는 바로 무효가 되고 같은 기기 ID({{ device.device_id }})는 다시 쓸 수 없어요.">
+      {% csrf_token %}
+      <div class="form-actions"><button type="submit" class="btn btn--ghost chip--danger">기기 보관</button></div>
+    </form>
+  </section>
+</div>
+{% endblock %}
