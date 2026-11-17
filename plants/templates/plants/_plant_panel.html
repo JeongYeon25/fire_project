@@ -89,7 +89,7 @@
   <div class="panel-section">
     <h3>작물 바꾸기 / 이름 바꾸기</h3>
     <form method="post" action="{% url 'plants:edit' plant.pk %}" novalidate data-plant-name-form
-          data-crop-confirm="작물을 바꾸면 그림도 새 작물로 바뀌고, 상태 판정 기준(물주기·조도)도 새 작물 기준으로 바뀌어요. 바꿀까요?">
+          data-crop-confirm="작물을 바꾸면 그림도 새 작물로 바뀌고, 상태 판정 기준(물주기·햇빛)도 새 작물 기준으로 바뀌어요. 바꿀까요?">
       {% csrf_token %}
       <div class="edit-grid">
         <div class="field" style="margin:0">

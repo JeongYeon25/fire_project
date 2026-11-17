@@ -143,9 +143,11 @@ class ContextTests(ChatTestCase):
         text = render_context(ctx)
         self.assertIn("상태 목이 말라요(thirsty)", text)
         self.assertIn("HP 3/5", text)
-        self.assertIn("- 토양수분: 마지막 20%", text)
+        self.assertIn("- 흙 촉촉함: 마지막 20%", text)
         self.assertIn("최대 9,000 lux", text)
         self.assertIn("8,000 lux 미만이면 빛 부족", text)
+        self.assertIn("/ 필요한 햇빛 양: 많이(하루 6시간 이상) /", text)
+        self.assertNotIn("/ 햇빛 많이", text)
         self.assertIn('이름 "토토"', text)
         self.assertIn("물 주기 (자동", text)
         self.assertIn('"분갈이 하기" — 오늘', text)
@@ -157,7 +159,7 @@ class ContextTests(ChatTestCase):
         self.assertEqual(ctx["status"]["state"], "nodata")
         self.assertEqual(ctx["status"]["light"], LIGHT_NOT_JUDGED)
         self.assertIn("아직 센서 값이 한 번도 오지 않았다", text)
-        self.assertIn("- 토양수분: 측정값 없음", text)
+        self.assertIn("- 흙 촉촉함: 측정값 없음", text)
         self.assertIn("HP 측정 전", text)
         self.assertIn("[마지막 수신] 없음", text)
         self.assertIn("물 부족 판정 안 함", text)
@@ -169,7 +171,7 @@ class ContextTests(ChatTestCase):
         self.assertEqual(ctx["status"]["state"], "offline")
         self.assertIn("센서 값이 끊겼다", text)
         self.assertIsNone(ctx["status"]["water_low"])
-        self.assertIn("- 토양수분: 측정값 없음", text.split("[측정값 요약 · 최근 7일]")[0])  # 24시간 안에는 없음
+        self.assertIn("- 흙 촉촉함: 측정값 없음", text.split("[측정값 요약 · 최근 7일]")[0])  # 24시간 안에는 없음
 
     @override_settings(LIGHT_LUX_SINCE=None)
     def test_light_unverified_on_device_plant(self):
@@ -181,7 +183,7 @@ class ContextTests(ChatTestCase):
         self.assertEqual(ctx["status"]["light"], LIGHT_UNVERIFIED)
         self.assertIsNone(ctx["status"]["light_low"])
         self.assertIn("빛 판정: 미검증", text)
-        self.assertIn("- 조도: 미검증이라 값을 쓰지 않음", text)
+        self.assertIn("- 햇빛: 미검증이라 값을 쓰지 않음", text)
         self.assertIn("빛 부족 판정 안 함", text)
         self.assertIn("측정: 센서 기기(1분 간격)", text)
 

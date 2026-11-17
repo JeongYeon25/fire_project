@@ -25,11 +25,11 @@
       {% csrf_token %}
       {% for field in form %}
       <div class="field device-channel">
-        <label for="{{ field.id_for_label }}">{{ field.label }} 토양수분</label>
+        <label for="{{ field.id_for_label }}">{{ field.label }} 흙 촉촉함</label>
         {{ field }}
       </div>
       {% endfor %}
-      <p class="muted small">한 화분은 한 채널에만 연결해요. 바꾸면 이 기기에서 받은 값으로 화분 측정값을 다시 계산하고, 연결을 푼 화분에서는 이 기기 값이 빠져요. 조도·온도·습도는 연결한 화분 모두에 들어가요.</p>
+      <p class="muted small">한 화분은 한 채널에만 연결해요. 바꾸면 이 기기에서 받은 값으로 화분 측정값을 다시 계산하고, 연결을 푼 화분에서는 이 기기 값이 빠져요. 햇빛·온도·공기 촉촉함은 연결한 화분 모두에 들어가요.</p>
       <div class="form-actions"><button class="btn" type="submit">연결 저장</button></div>
     </form>
     {% else %}

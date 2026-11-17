@@ -107,7 +107,7 @@ def graph_data(request):
             if (crop.id, value) in seen:
                 continue
             seen.add((crop.id, value))
-            name = "물주기 기준" if metric == "moisture" else "조도 기준"
+            name = "물주기 기준" if metric == "moisture" else "햇빛 기준"
             shown = display_value(metric, value)
             thresholds.append({"value": shown, "label": f"{crop.name} {name} {shown:,g}{METRICS[metric]['unit']}"})
 

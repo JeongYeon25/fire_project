@@ -104,7 +104,7 @@
     {% else %}
     <div class="empty-cta">
       {% pixel "drop" 28 "" %}
-      <p>아직 센서 값이 없어요. 센서를 연결하면 토양수분·조도·온도·습도가 여기에 보여요.</p>
+      <p>아직 센서 값이 없어요. 센서를 연결하면 흙 촉촉함·햇빛·온도·공기 촉촉함이 여기에 보여요.</p>
       {% if first_waiting %}<a class="btn btn--small" href="{% url 'plants:list' %}?open={{ first_waiting.pk }}">센서 연결하기</a>
       {% else %}<a class="btn btn--small" href="{% url 'plants:list' %}?add=1">새 식물 추가</a>{% endif %}
     </div>

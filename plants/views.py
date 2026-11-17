@@ -40,7 +40,7 @@ def todo_items(user, rows):
     for row in rows:
         plant, status = row["plant"], row["status"]
         if status.water_low:
-            items.append(("water:" + plant.slot, f"{plant.title}에 물 주기 (토양수분 {int(status.moisture)}%)"))
+            items.append(("water:" + plant.slot, f"{plant.title}에 물 주기 (흙 촉촉함 {int(status.moisture)}%)"))
         if status.light_low:
             items.append(("light:" + plant.slot, f"{josa(plant.title, '을', '를')} 밝은 곳으로 옮기기"))
     return [{"key": key, "text": text, "checked": key in checked} for key, text in items]

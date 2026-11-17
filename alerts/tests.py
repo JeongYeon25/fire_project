@@ -49,7 +49,7 @@ class WaterAlertTests(AlertTestBase):
         created = self.read(at(1, 10), moisture=25.6)
         self.assertEqual([a.kind for a in created], ["water"])
         alert = self.alerts("water").get()
-        self.assertEqual(alert.message, "토양수분이 30% 아래로 내려갔어요(지금 25%). 물을 주세요.")
+        self.assertEqual(alert.message, "흙이 많이 말랐어요(촉촉함 25%, 기준 30%). 물을 주세요.")
         self.assertIsNone(alert.resolved_at)
         self.assertEqual(alert.sent_at, at(1, 10))
 
@@ -78,7 +78,7 @@ class WaterAlertTests(AlertTestBase):
         self.read(at(1, 10), moisture=25)
         self.assertFalse(self.alerts("water").exists())
         self.read(at(1, 11), moisture=19)
-        self.assertIn("20% 아래로", self.alerts("water").get().message)
+        self.assertIn("기준 20%", self.alerts("water").get().message)
 
     def test_other_plant_does_not_block(self):
         b = Plant.objects.create(owner=self.user, slot="B", crop=self.tomato)
@@ -142,7 +142,7 @@ class LightAlertTests(AlertTestBase):
         self.assertEqual([a.kind for a in created], ["light"])
         self.assertEqual(
             self.alerts("light").get().message,
-            "오늘 낮(09~18시) 최고 조도가 5,200 lux로 기준(8,000 lux)보다 낮았어요. 밝은 곳으로 옮겨 주세요.",
+            "오늘 낮(09~18시) 햇빛이 가장 강할 때 5,200 lux로 기준(8,000 lux)보다 약했어요. 밝은 곳으로 옮겨 주세요.",
         )
 
     def test_judged_once_per_day(self):
@@ -246,9 +246,9 @@ class ReadingApiAlertTests(AlertTestBase):
         self.client.force_login(self.user)
         self.post(self.plant, moisture=12)
         home = self.client.get("/home/")
-        self.assertContains(home, "토양수분이 30% 아래로 내려갔어요(지금 12%). 물을 주세요.")
+        self.assertContains(home, "흙이 많이 말랐어요(촉촉함 12%, 기준 30%). 물을 주세요.")
         self.assertContains(home, "확인 필요")
         self.post(self.plant, moisture=60)
         page = self.client.get("/alerts/")
-        self.assertContains(page, "토양수분이 30% 아래로 내려갔어요(지금 12%)")
+        self.assertContains(page, "흙이 많이 말랐어요(촉촉함 12%, 기준 30%)")
         self.assertContains(page, "해결됨")

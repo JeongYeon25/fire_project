@@ -261,7 +261,7 @@ class LuxDisplayTests(TestCase):
         self.assertEqual(data["unit"], "lux")
         self.assertEqual(data["series"][0]["values"], [3421.7])
         self.assertEqual(data["thresholds"][0]["value"], 8000)
-        self.assertEqual(data["thresholds"][0]["label"], "토마토 조도 기준 8,000lux")
+        self.assertEqual(data["thresholds"][0]["label"], "토마토 햇빛 기준 8,000lux")
         self.assertIsNone(data["light_unit_changed_at"])
 
     def test_graph_marks_light_sensor_change(self):

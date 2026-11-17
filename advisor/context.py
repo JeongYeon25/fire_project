@@ -26,7 +26,7 @@ ALERT_MAX = 5
 TODO_MAX = 5
 
 LIGHT_JUDGED = "판정함"
-LIGHT_UNVERIFIED = "미검증(조도 센서 단위를 확인하는 중이라 빛은 판정하지 않음)"
+LIGHT_UNVERIFIED = "미검증(햇빛 센서 단위를 확인하는 중이라 빛은 판정하지 않음)"
 LIGHT_NOT_JUDGED = "판정 안 함(센서 값이 없거나 끊겨서 상태를 판정하지 않음)"
 
 
@@ -97,9 +97,9 @@ def build_context(plant, now=None):
 
     todos = []
     if status.water_low:
-        todos.append("물 주기 (자동: 토양수분이 물주기 기준보다 낮음)")
+        todos.append("물 주기 (자동: 흙 촉촉함이 물주기 기준보다 낮음)")
     if status.light_low:
-        todos.append("밝은 곳으로 옮기기 (자동: 최근 24시간 최고 조도가 기준보다 낮음)")
+        todos.append("밝은 곳으로 옮기기 (자동: 최근 24시간 가장 강한 햇빛이 기준보다 약함)")
     today = timezone.localdate(now)
     tasks = Task.objects.filter(plant=plant, done_at__isnull=True, due_date__lte=today).order_by("due_date", "due_time")[:TODO_MAX]
     for task in tasks:
@@ -166,11 +166,11 @@ def render_context(ctx):
 
     lines.append(
         "[작물 기준] "
-        f"토양수분 {_num(c['water_threshold'], '%')} 미만이면 물 부족 / "
-        f"적정 토양수분 {c['moisture'][0]:g}~{c['moisture'][1]:g}% / "
-        f"최근 24시간 최고 조도 {_num(c['light_threshold_lux'], ' lux')} 미만이면 빛 부족 / "
-        f"적정 온도 {c['temp'][0]:g}~{c['temp'][1]:g}°C / 적정 습도 {c['humidity'][0]:g}~{c['humidity'][1]:g}% / "
-        f"물 {c['water']} / 햇빛 {c['sun']} / 난이도 {c['difficulty']}"
+        f"흙 촉촉함 {_num(c['water_threshold'], '%')} 미만이면 물 부족 / "
+        f"적정 흙 촉촉함 {c['moisture'][0]:g}~{c['moisture'][1]:g}% / "
+        f"최근 24시간 가장 강한 햇빛 {_num(c['light_threshold_lux'], ' lux')} 미만이면 빛 부족 / "
+        f"적정 온도 {c['temp'][0]:g}~{c['temp'][1]:g}°C / 적정 공기 촉촉함 {c['humidity'][0]:g}~{c['humidity'][1]:g}% / "
+        f"물 {c['water']} / 필요한 햇빛 양: {c['sun'].replace('+', ' 이상')} / 난이도 {c['difficulty']}"
     )
 
     hp = f"{s['hp']}/5" if s["hp"] is not None else "측정 전(–)"

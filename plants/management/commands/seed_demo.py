@@ -121,7 +121,7 @@ class Command(BaseCommand):
                         diary.append(
                             DiaryEntry(
                                 owner=user, plant=plant, is_auto=True, created_at=t,
-                                content=f"{plant.name}에게 물을 줬어요. 토양수분 {before:.0f}% → {min(before + amount, 72):.0f}%",
+                                content=f"{plant.name}에게 물을 줬어요. 흙 촉촉함 {before:.0f}% → {min(before + amount, 72):.0f}%",
                             )
                         )
                 moisture = max(5.0, min(72.0, moisture))

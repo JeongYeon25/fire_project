@@ -28,12 +28,12 @@ DAY_END_HOUR = 18
 
 
 def water_message(threshold, moisture):
-    return f"토양수분이 {threshold:g}% 아래로 내려갔어요(지금 {int(moisture)}%). 물을 주세요."
+    return f"흙이 많이 말랐어요(촉촉함 {int(moisture)}%, 기준 {threshold:g}%). 물을 주세요."
 
 
 def light_message(threshold, peak):
     """기준·측정값은 klux, 문구는 lux."""
-    return f"오늘 낮(09~18시) 최고 조도가 {peak * 1000:,.0f} lux로 기준({threshold * 1000:,.0f} lux)보다 낮았어요. 밝은 곳으로 옮겨 주세요."
+    return f"오늘 낮(09~18시) 햇빛이 가장 강할 때 {peak * 1000:,.0f} lux로 기준({threshold * 1000:,.0f} lux)보다 약했어요. 밝은 곳으로 옮겨 주세요."
 
 
 def sensor_message(hours):

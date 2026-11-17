@@ -182,7 +182,7 @@
       }
       marker(data.condition_changed_at, "", "조건 변경", PAD.top + 10);
       // 위쪽은 기준선 글자와 겹치기 쉬워서 아래쪽에 쓴다
-      marker(data.light_unit_changed_at, " changed--sensor", "조도 센서 교체(lux)", PAD.top + ih - 6);
+      marker(data.light_unit_changed_at, " changed--sensor", "햇빛 센서 교체(lux)", PAD.top + ih - 6);
       // 기준선
       var usedLabelY = [];
       data.thresholds.forEach(function (th) {
@@ -252,7 +252,7 @@
         var sw2 = h("span", "legend__dash");
         sw2.style.setProperty("--c", "var(--t-blue)");
         lu.appendChild(sw2);
-        lu.appendChild(document.createTextNode("조도 센서 교체 — 이후 lux (" + fmtTime(data.light_unit_changed_at) + ")"));
+        lu.appendChild(document.createTextNode("햇빛 센서 교체 — 이후 lux (" + fmtTime(data.light_unit_changed_at) + ")"));
         legend.appendChild(lu);
       }
       renderTable();

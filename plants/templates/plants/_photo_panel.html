@@ -4,11 +4,11 @@
 
   <div class="sensor-tiles" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px">
     <div class="sensor-tile">
-      <span class="sensor-tile__head">{% pixel "drop" 24 "" %}토양수분</span>
+      <span class="sensor-tile__head">{% pixel "drop" 24 "" %}흙 촉촉함</span>
       <b>{{ reading.moisture|num:0 }} %</b>
     </div>
     <div class="sensor-tile">
-      <span class="sensor-tile__head">{% pixel "star" 24 "" %}조도</span>
+      <span class="sensor-tile__head">{% pixel "star" 24 "" %}햇빛</span>
       <b>{{ reading.light|lux_num }} lux</b>
     </div>
   </div>

@@ -16,7 +16,7 @@
   {% elif not has_readings %}
   <div class="empty-cta">
     {% pixel "star" 28 "" %}
-    <p>아직 센서 값이 없어요. 센서를 연결하면 토양수분·조도·온도·습도 변화가 그래프로 그려져요.</p>
+    <p>아직 센서 값이 없어요. 센서를 연결하면 흙 촉촉함·햇빛·온도·공기 촉촉함 변화가 그래프로 그려져요.</p>
     <a class="btn btn--small" href="{% url 'plants:list' %}?open={{ first_waiting.pk|default:plants.0.pk }}">센서 연결하기</a>
   </div>
   {% else %}

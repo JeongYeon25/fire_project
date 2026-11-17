@@ -105,10 +105,10 @@ PROPS = {
 }
 
 PROP_LABELS = {
-    "star": "조도",
-    "drop": "토양수분",
+    "star": "햇빛",
+    "drop": "흙 촉촉함",
     "potion_red": "온도",
-    "potion_blue": "습도",
+    "potion_blue": "공기 촉촉함",
     "envelope": "알림",
 }
 

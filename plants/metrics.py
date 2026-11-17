@@ -4,10 +4,10 @@
 """
 
 METRICS = {
-    "moisture": {"label": "토양수분", "unit": "%", "icon": "drop", "digits": 0, "factor": 1},
-    "light": {"label": "조도", "unit": "lux", "icon": "star", "digits": 0, "factor": 1000},
+    "moisture": {"label": "흙 촉촉함", "unit": "%", "icon": "drop", "digits": 0, "factor": 1},
+    "light": {"label": "햇빛", "unit": "lux", "icon": "star", "digits": 0, "factor": 1000},
     "temp": {"label": "온도", "unit": "°C", "icon": "potion_red", "digits": 1, "factor": 1},
-    "humidity": {"label": "습도", "unit": "%", "icon": "potion_blue", "digits": 0, "factor": 1},
+    "humidity": {"label": "공기 촉촉함", "unit": "%", "icon": "potion_blue", "digits": 0, "factor": 1},
 }
 METRIC_KEYS = list(METRICS)
 
@@ -37,7 +37,7 @@ def gauges(crop, latest, status):
     if status.light_judged or status.is_waiting:
         light_note = f"낮 최고 {lux(crop.light_threshold)} 이상이면 충분해요"
     else:
-        light_note = "조도 센서 단위를 확인하는 중이라 빛은 아직 판정하지 않아요"
+        light_note = "햇빛 센서 단위를 확인하는 중이라 빛은 아직 판정하지 않아요"
     specs = [
         ("moisture", latest.moisture if latest else None, 100.0, crop.moisture_min, crop.moisture_max, "지금", f"적정 {crop.moisture_min:g}~{crop.moisture_max:g}% · {crop.water_threshold:g}% 아래면 물 필요"),
         ("light", light_value, light_scale, crop.light_threshold, light_scale, "최근 24시간 최고", light_note),
