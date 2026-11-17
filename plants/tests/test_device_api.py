@@ -33,7 +33,7 @@ def row(time, soil=(450, 450, 450, 450), light=900, temp=24.0, hum=50.0, n=1, no
     }
 
 
-@override_settings(SOIL_CALIBRATION=CALIBRATION)
+@override_settings(SOIL_CALIBRATION=CALIBRATION, LIGHT_LUX_SINCE=None)  # .env 값과 상관없이
 class DeviceApiTests(TestCase):
     fixtures = ["crops"]
 

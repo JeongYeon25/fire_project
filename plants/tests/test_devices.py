@@ -51,7 +51,7 @@ def local_str(dt):
     return timezone.localtime(dt).replace(tzinfo=None, microsecond=0).isoformat()
 
 
-@override_settings(SOIL_CALIBRATION=CALIBRATION)
+@override_settings(SOIL_CALIBRATION=CALIBRATION, LIGHT_LUX_SINCE=None)  # .env 값과 상관없이
 class DeviceTestCase(TestCase):
     fixtures = ["crops"]
 
